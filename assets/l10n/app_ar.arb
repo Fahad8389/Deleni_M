@@ -1,0 +1,116 @@
+{
+  "@@locale": "ar",
+  "appTitle": "دلني",
+  "appTagline": "الملاحة الداخلية للمستشفى",
+  "home": "الرئيسية",
+  "back": "رجوع",
+  "searchClinics": "البحث عن العيادات",
+  "searchClinicsDesc": "ابحث وتنقل إلى العيادات",
+  "visitPatient": "زيارة مريض",
+  "visitPatientDesc": "انتقل إلى غرف المرضى",
+  "myAppointments": "مواعيدي",
+  "myAppointmentsDesc": "إدارة مواعيدك",
+  "emergency": "الطوارئ",
+  "emergencyDesc": "طريق سريع إلى الطوارئ",
+  "settings": "الإعدادات",
+  "appearance": "المظهر",
+  "darkMode": "الوضع الداكن",
+  "darkModeDesc": "التبديل إلى المظهر الداكن",
+  "languageRegion": "اللغة والمنطقة",
+  "english": "English",
+  "arabic": "العربية",
+  "accessibility": "إمكانية الوصول",
+  "accessibilityMode": "وضع إمكانية الوصول",
+  "accessibilityModeDesc": "نص أكبر ومسارات محسنة",
+  "accessibilityEnabled": "تم تفعيل وضع إمكانية الوصول",
+  "notifications": "الإشعارات",
+  "notificationsDesc": "تلقي تذكيرات المواعيد",
+  "about": "حول التطبيق",
+  "aboutDesc": "دلني يساعدك على التنقل في المستشفيات في المملكة العربية السعودية بسهولة. ابحث عن العيادات، قم بزيارة المرضى، وأدر مواعيدك.",
+  "version": "الإصدار",
+  "madeWith": "صُنع بعناية لتحسين الملاحة في المستشفيات",
+  "searchDestination": "ابحث عن وجهة...",
+  "noResults": "لا توجد نتائج",
+  "floor": "الطابق",
+  "groundFloor": "الطابق الأرضي",
+  "firstFloor": "الطابق الأول",
+  "secondFloor": "الطابق الثاني",
+  "selectHospital": "اختر المستشفى",
+  "destinations": "الوجهات",
+  "clinic": "عيادة",
+  "department": "قسم",
+  "room": "غرفة",
+  "emergencyDept": "الطوارئ",
+  "distance": "المسافة",
+  "meters": "م",
+  "walkingTime": "وقت المشي",
+  "minutes": "دقيقة",
+  "navigateTo": "انتقل إلى {name}",
+  "@navigateTo": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "enterRoomNumber": "أدخل رقم الغرفة",
+  "findRoom": "البحث عن الغرفة",
+  "roomNotFound": "الغرفة غير موجودة. يرجى التحقق من الرقم.",
+  "searchAgain": "البحث مرة أخرى",
+  "quickAccess": "وصول سريع",
+  "navigatingTo": "التنقل إلى {name}",
+  "@navigatingTo": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "createAppointment": "إنشاء موعد",
+  "noAppointments": "لا توجد مواعيد بعد",
+  "noAppointmentsDesc": "أنشئ أول موعد لك للبدء",
+  "selectClinic": "اختر عيادة",
+  "selectDate": "اختر التاريخ",
+  "selectTime": "اختر وقتاً",
+  "available": "متاح",
+  "limited": "محدود",
+  "full": "ممتلئ",
+  "remaining": "{count} متبقي",
+  "@remaining": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "cancel": "إلغاء",
+  "save": "حفظ",
+  "delete": "حذف",
+  "navigateToClinic": "انتقل إلى العيادة",
+  "startsIn": "يبدأ في: {time}",
+  "@startsIn": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "appointmentPassed": "انتهى الموعد",
+  "emergencyMode": "وضع الطوارئ",
+  "emergencyRouteInfo": "اتبع المسار المميز إلى قسم الطوارئ",
+  "call997": "اتصل ٩٩٧",
+  "emergencyContact": "خدمات الطوارئ السعودية",
+  "emergencyInstructions": "تعليمات الطوارئ",
+  "instruction1": "اتبع المسار الأحمر المميز",
+  "instruction2": "ابحث عن لافتات الطوارئ بالصليب الأحمر",
+  "instruction3": "اطلب المساعدة من موظفي المستشفى",
+  "emergencyWarning": "في حالة الطوارئ المهددة للحياة، اتصل بـ ٩٩٧ فوراً. الملاحة للإرشاد فقط.",
+  "startNavigation": "بدء الملاحة",
+  "endNavigation": "إنهاء الملاحة",
+  "roomLabel": "غرفة {number}",
+  "@roomLabel": {
+    "placeholders": {
+      "number": {"type": "String"}
+    }
+  },
+  "floorLabel": "الطابق {number}",
+  "@floorLabel": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "today": "اليوم",
+  "tomorrow": "غداً"
+}

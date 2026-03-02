@@ -1,0 +1,116 @@
+{
+  "@@locale": "en",
+  "appTitle": "Delni",
+  "appTagline": "Hospital Indoor Navigation",
+  "home": "Home",
+  "back": "Back",
+  "searchClinics": "Search Clinics",
+  "searchClinicsDesc": "Find and navigate to clinics",
+  "visitPatient": "Visit Patient",
+  "visitPatientDesc": "Navigate to patient rooms",
+  "myAppointments": "My Appointments",
+  "myAppointmentsDesc": "Manage your appointments",
+  "emergency": "Emergency",
+  "emergencyDesc": "Quick route to ER",
+  "settings": "Settings",
+  "appearance": "Appearance",
+  "darkMode": "Dark Mode",
+  "darkModeDesc": "Switch to dark theme",
+  "languageRegion": "Language & Region",
+  "english": "English",
+  "arabic": "العربية",
+  "accessibility": "Accessibility",
+  "accessibilityMode": "Accessibility Mode",
+  "accessibilityModeDesc": "Larger text and enhanced paths",
+  "accessibilityEnabled": "Accessibility mode is enabled",
+  "notifications": "Notifications",
+  "notificationsDesc": "Receive appointment reminders",
+  "about": "About",
+  "aboutDesc": "Delni helps you navigate hospitals in Saudi Arabia with ease. Find clinics, visit patients, and manage appointments.",
+  "version": "Version",
+  "madeWith": "Made with care for better hospital navigation",
+  "searchDestination": "Search for a destination...",
+  "noResults": "No results found",
+  "floor": "Floor",
+  "groundFloor": "Ground Floor",
+  "firstFloor": "First Floor",
+  "secondFloor": "Second Floor",
+  "selectHospital": "Select Hospital",
+  "destinations": "Destinations",
+  "clinic": "Clinic",
+  "department": "Department",
+  "room": "Room",
+  "emergencyDept": "Emergency",
+  "distance": "Distance",
+  "meters": "m",
+  "walkingTime": "Walking Time",
+  "minutes": "min",
+  "navigateTo": "Navigate to {name}",
+  "@navigateTo": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "enterRoomNumber": "Enter room number",
+  "findRoom": "Find Room",
+  "roomNotFound": "Room not found. Please check the number.",
+  "searchAgain": "Search Again",
+  "quickAccess": "Quick Access",
+  "navigatingTo": "Navigating to {name}",
+  "@navigatingTo": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "createAppointment": "Create Appointment",
+  "noAppointments": "No appointments yet",
+  "noAppointmentsDesc": "Create your first appointment to get started",
+  "selectClinic": "Select a clinic",
+  "selectDate": "Select date",
+  "selectTime": "Select a time slot",
+  "available": "Available",
+  "limited": "Limited",
+  "full": "Full",
+  "remaining": "{count} remaining",
+  "@remaining": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "navigateToClinic": "Navigate to Clinic",
+  "startsIn": "Starts in: {time}",
+  "@startsIn": {
+    "placeholders": {
+      "time": {"type": "String"}
+    }
+  },
+  "appointmentPassed": "Appointment passed",
+  "emergencyMode": "EMERGENCY MODE",
+  "emergencyRouteInfo": "Follow the highlighted path to the Emergency Department",
+  "call997": "Call 997",
+  "emergencyContact": "Saudi Emergency Services",
+  "emergencyInstructions": "Emergency Instructions",
+  "instruction1": "Follow the red highlighted path",
+  "instruction2": "Look for emergency signs with red cross",
+  "instruction3": "Ask hospital staff for assistance",
+  "emergencyWarning": "In case of a life-threatening emergency, call 997 immediately. Navigation is for guidance only.",
+  "startNavigation": "Start Navigation",
+  "endNavigation": "End Navigation",
+  "roomLabel": "Room {number}",
+  "@roomLabel": {
+    "placeholders": {
+      "number": {"type": "String"}
+    }
+  },
+  "floorLabel": "Floor {number}",
+  "@floorLabel": {
+    "placeholders": {
+      "number": {"type": "int"}
+    }
+  },
+  "today": "Today",
+  "tomorrow": "Tomorrow"
+}
