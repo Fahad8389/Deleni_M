@@ -77,6 +77,7 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
     final dest = _resolveDestination();
     final int floorId = dest?.floor ?? ref.watch(selectedFloorProvider);
     final floor = hospital.floorById(floorId);
+    final isDark = settings.darkMode;
 
     if (floor == null) {
       return SizedBox(
@@ -85,7 +86,6 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
       );
     }
 
-    // Start path animation when destination is set
     if (dest != null &&
         !_pathController.isAnimating &&
         _pathController.value == 0) {
@@ -96,17 +96,16 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
 
     final mapContent = Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: widget.isEmergency
-              ? AppColors.terracotta.withOpacity(0.3)
-              : (settings.darkMode ? AppColors.dividerDark : AppColors.dividerLight),
+              ? AppColors.red.withValues(alpha: 0.3)
+              : (isDark ? AppColors.darkBorder : AppColors.border),
         ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Floor plan
           Positioned.fill(
             child: CustomPaint(
               painter: getFloorPlanPainter(
@@ -117,7 +116,6 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
               ),
             ),
           ),
-          // Navigation path overlay
           if (dest != null && dest.floor == floorId)
             Positioned.fill(
               child: AnimatedBuilder(
@@ -138,7 +136,6 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
                 },
               ),
             ),
-          // Route info overlay
           if (dest != null &&
               dest.floor == floorId &&
               _pathController.value >= 1.0)
@@ -156,45 +153,36 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
   Widget _buildRouteInfo(Floor floor, Destination dest, SettingsState settings) {
     final route = calculateRouteInfo(floor.entrance, dest.position);
     final isDark = settings.darkMode;
+    final accentColor = widget.isEmergency ? AppColors.red : (isDark ? AppColors.darkBlue : AppColors.blue);
+
     return Positioned(
-      top: 12,
-      left: 12,
-      right: 12,
+      top: 10,
+      left: 10,
+      right: 10,
       child: AnimatedOpacity(
         opacity: _pathController.value >= 1.0 ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 300),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: isDark
-                ? AppColors.darkSurface.withOpacity(0.95)
-                : Colors.white.withOpacity(0.95),
-            borderRadius: BorderRadius.circular(12),
+                ? AppColors.darkSurface.withValues(alpha: 0.95)
+                : Colors.white.withValues(alpha: 0.95),
+            borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: widget.isEmergency
-                  ? AppColors.terracotta
-                  : AppColors.deepTeal,
-              width: 1.5,
+              color: isDark ? AppColors.darkBorder : AppColors.border,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _metric(
-                Icons.straighten,
-                '${route.distanceMeters}m',
-                isDark,
-              ),
+              _metric(Icons.straighten, '${route.distanceMeters}m', accentColor, isDark),
               Container(
                 width: 1,
-                height: 24,
-                color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                height: 20,
+                color: isDark ? AppColors.darkDivider : AppColors.divider,
               ),
-              _metric(
-                Icons.directions_walk,
-                '${route.walkMinutes} min',
-                isDark,
-              ),
+              _metric(Icons.directions_walk, '${route.walkMinutes} min', accentColor, isDark),
             ],
           ),
         ),
@@ -202,19 +190,18 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
     );
   }
 
-  Widget _metric(IconData icon, String text, bool isDark) {
-    final color = widget.isEmergency ? AppColors.terracotta : AppColors.deepTeal;
+  Widget _metric(IconData icon, String text, Color accentColor, bool isDark) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: color),
+        Icon(icon, size: 16, color: accentColor),
         const SizedBox(width: 6),
         Text(
           text,
           style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: isDark ? AppColors.textLight : AppColors.textDark,
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
       ],

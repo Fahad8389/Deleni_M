@@ -17,23 +17,23 @@ class AccessibilityBanner extends ConsumerWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.gold.withOpacity(0.15),
+        color: AppColors.yellowBg,
         border: Border(
-          bottom: BorderSide(color: AppColors.gold.withOpacity(0.3)),
+          bottom: BorderSide(color: AppColors.yellow.withValues(alpha: 0.3)),
         ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.accessible, color: AppColors.gold, size: 20),
+          const Icon(Icons.accessible, color: AppColors.yellow, size: 18),
           const SizedBox(width: 8),
           Text(
             l10n.accessibilityEnabled,
             style: TextStyle(
-              color: AppColors.gold,
-              fontWeight: FontWeight.w600,
-              fontSize: isAccessible ? 15 : 13,
+              color: AppColors.yellow,
+              fontWeight: FontWeight.w500,
+              fontSize: isAccessible ? 14 : 12,
             ),
           ),
         ],

@@ -31,7 +31,6 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
-    // Auto-select ER destination
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final hospital = ref.read(selectedHospitalProvider);
       final er = hospital.emergencyDestination;
@@ -55,6 +54,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
     final routeInfo = ref.watch(routeInfoProvider);
     final l10n = AppLocalizations(settings.language);
     final isAccessible = settings.accessibilityMode;
+    final isDark = settings.darkMode;
 
     return Scaffold(
       body: SafeArea(
@@ -62,14 +62,13 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
           children: [
             Column(
               children: [
-                // Emergency header
+                // Emergency header — clean with red chip
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.terracotta.withOpacity(0.08),
                     border: Border(
-                      bottom: BorderSide(color: AppColors.terracotta.withOpacity(0.2)),
+                      bottom: BorderSide(color: isDark ? AppColors.darkDivider : AppColors.divider),
                     ),
                   ),
                   child: Row(
@@ -80,23 +79,22 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                         animation: _pulseAnim,
                         builder: (context, child) {
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: AppColors.terracotta.withOpacity(0.1 + _pulseAnim.value * 0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.terracotta.withOpacity(0.5)),
+                              color: AppColors.redBg.withValues(alpha: 0.6 + _pulseAnim.value * 0.4),
+                              borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.emergency_rounded, color: AppColors.terracotta, size: isAccessible ? 20 : 16),
+                                Icon(Icons.emergency_outlined, color: AppColors.red, size: isAccessible ? 18 : 16),
                                 const SizedBox(width: 6),
                                 Text(
                                   l10n.emergencyMode,
                                   style: TextStyle(
-                                    color: AppColors.terracotta,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: isAccessible ? 15 : 13,
+                                    color: AppColors.red,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: isAccessible ? 14 : 12,
                                   ),
                                 ),
                               ],
@@ -114,21 +112,21 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        // Animated emergency icon
                         const SizedBox(height: 8),
+                        // Pulsing icon
                         AnimatedBuilder(
                           animation: _pulseAnim,
                           builder: (context, _) {
                             return Container(
-                              padding: EdgeInsets.all(20 + _pulseAnim.value * 4),
+                              padding: EdgeInsets.all(18 + _pulseAnim.value * 4),
                               decoration: BoxDecoration(
-                                color: AppColors.terracotta.withOpacity(0.08 + _pulseAnim.value * 0.08),
+                                color: AppColors.redBg,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                Icons.emergency_rounded,
-                                size: isAccessible ? 56 : 44,
-                                color: AppColors.terracotta,
+                                Icons.emergency_outlined,
+                                size: isAccessible ? 48 : 40,
+                                color: AppColors.red,
                               ),
                             );
                           },
@@ -138,13 +136,13 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                           l10n.emergencyRouteInfo,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: isAccessible ? 16 : 14,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            fontSize: isAccessible ? 15 : 14,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 16),
 
-                        // Route info
+                        // Route info card
                         if (routeInfo != null)
                           Card(
                             child: Padding(
@@ -157,16 +155,16 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                                         Text(
                                           localizeNumber(routeInfo.distanceMeters, settings.language),
                                           style: TextStyle(
-                                            fontSize: isAccessible ? 36 : 32,
-                                            fontWeight: FontWeight.w800,
-                                            color: AppColors.terracotta,
+                                            fontSize: isAccessible ? 34 : 30,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.red,
                                           ),
                                         ),
                                         Text(
                                           l10n.meters,
                                           style: TextStyle(
-                                            fontSize: isAccessible ? 14 : 12,
-                                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                            fontSize: isAccessible ? 13 : 12,
+                                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                                           ),
                                         ),
                                       ],
@@ -175,7 +173,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                                   Container(
                                     width: 1,
                                     height: 50,
-                                    color: Theme.of(context).dividerColor,
+                                    color: isDark ? AppColors.darkDivider : AppColors.divider,
                                   ),
                                   Expanded(
                                     child: Column(
@@ -183,16 +181,16 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                                         Text(
                                           localizeNumber(routeInfo.walkMinutes, settings.language),
                                           style: TextStyle(
-                                            fontSize: isAccessible ? 36 : 32,
-                                            fontWeight: FontWeight.w800,
-                                            color: AppColors.terracotta,
+                                            fontSize: isAccessible ? 34 : 30,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.red,
                                           ),
                                         ),
                                         Text(
                                           l10n.minutes,
                                           style: TextStyle(
-                                            fontSize: isAccessible ? 14 : 12,
-                                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                            fontSize: isAccessible ? 13 : 12,
+                                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                                           ),
                                         ),
                                       ],
@@ -210,12 +208,12 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.terracotta.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.redBg,
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Icon(Icons.phone, color: AppColors.terracotta),
+                              child: const Icon(Icons.phone_outlined, color: AppColors.red),
                             ),
-                            title: Text(l10n.call997, style: TextStyle(fontWeight: FontWeight.w700, fontSize: isAccessible ? 17 : 15)),
+                            title: Text(l10n.call997, style: TextStyle(fontWeight: FontWeight.w600, fontSize: isAccessible ? 16 : 14)),
                             subtitle: Text(l10n.emergencyContact, style: TextStyle(fontSize: isAccessible ? 13 : 11)),
                           ),
                         ),
@@ -240,7 +238,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                               children: [
                                 Text(
                                   l10n.emergencyInstructions,
-                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: isAccessible ? 17 : 15),
+                                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: isAccessible ? 16 : 14),
                                 ),
                                 const SizedBox(height: 12),
                                 _InstructionStep(number: '1', text: l10n.instruction1, isAccessible: isAccessible),
@@ -254,31 +252,30 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                         ),
                         const SizedBox(height: 12),
 
-                        // Warning
+                        // Warning — Notion yellow tag style
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: AppColors.gold.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                            color: AppColors.yellowBg,
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.warning_amber_rounded, color: AppColors.gold),
-                              const SizedBox(width: 12),
+                              const Icon(Icons.warning_amber_rounded, color: AppColors.yellow, size: 20),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   l10n.emergencyWarning,
                                   style: TextStyle(
-                                    fontSize: isAccessible ? 13 : 11,
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                    fontSize: isAccessible ? 13 : 12,
+                                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                                   ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 80), // Space for sticky button
+                        const SizedBox(height: 80),
                       ],
                     ),
                   ),
@@ -290,38 +287,32 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
               left: 16,
               right: 16,
               bottom: 16,
-              child: AnimatedBuilder(
-                animation: _pulseAnim,
-                builder: (context, _) {
-                  return SizedBox(
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() => _isNavigating = !_isNavigating);
-                      },
-                      icon: Icon(
-                        _isNavigating ? Icons.close : Icons.navigation_rounded,
-                        size: 24,
-                      ),
-                      label: Text(
-                        _isNavigating ? l10n.endNavigation : l10n.startNavigation,
-                        style: TextStyle(
-                          fontSize: isAccessible ? 18 : 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.terracotta,
-                        foregroundColor: Colors.white,
-                        elevation: 4 + _pulseAnim.value * 4,
-                        shadowColor: AppColors.terracotta.withOpacity(0.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
+              child: SizedBox(
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    setState(() => _isNavigating = !_isNavigating);
+                  },
+                  icon: Icon(
+                    _isNavigating ? Icons.close : Icons.navigation_outlined,
+                    size: 20,
+                  ),
+                  label: Text(
+                    _isNavigating ? l10n.endNavigation : l10n.startNavigation,
+                    style: TextStyle(
+                      fontSize: isAccessible ? 16 : 14,
+                      fontWeight: FontWeight.w500,
                     ),
-                  );
-                },
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.red,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -348,27 +339,27 @@ class _InstructionStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 24,
-          height: 24,
+          width: 22,
+          height: 22,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.terracotta.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(6),
+            color: AppColors.redBg,
+            borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
             number,
             style: TextStyle(
-              color: AppColors.terracotta,
-              fontWeight: FontWeight.w700,
-              fontSize: isAccessible ? 14 : 12,
+              color: AppColors.red,
+              fontWeight: FontWeight.w600,
+              fontSize: isAccessible ? 13 : 11,
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: isAccessible ? 15 : 13),
+            style: TextStyle(fontSize: isAccessible ? 14 : 13),
           ),
         ),
       ],

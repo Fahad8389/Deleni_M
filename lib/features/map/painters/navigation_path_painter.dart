@@ -4,16 +4,11 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/hospital.dart';
 
-/// Paints an animated navigation path from entrance to destination,
-/// with progressive reveal, direction arrows, and pulsing markers.
-///
-/// Coordinates are given as percentage-based positions (0-100) matching
-/// the hospital data model, then scaled to the canvas.
 class NavigationPathPainter extends CustomPainter {
   final Position entrance;
   final Position destination;
-  final double progress; // 0.0 → 1.0
-  final double pulseValue; // 0.0 → 1.0 (looping)
+  final double progress;
+  final double pulseValue;
   final bool isEmergency;
   final bool isAccessibility;
   final bool darkMode;
@@ -32,18 +27,17 @@ class NavigationPathPainter extends CustomPainter {
       Offset(p.x / 100 * size.width, p.y / 100 * size.height);
 
   Color get _pathColor {
-    if (isEmergency) return AppColors.terracotta;
-    if (isAccessibility) return AppColors.gold;
-    return AppColors.deepTeal;
+    if (isEmergency) return AppColors.red;
+    if (isAccessibility) return AppColors.yellow;
+    return darkMode ? AppColors.darkBlue : AppColors.blue;
   }
 
   double get _lineWidth {
-    if (isEmergency) return 8.0;
-    if (isAccessibility) return 7.0;
-    return 6.0;
+    if (isEmergency) return 6.0;
+    if (isAccessibility) return 5.5;
+    return 5.0;
   }
 
-  /// Generates a corridor-following path: entrance → corridor → destination.
   List<Position> _buildWaypoints() {
     final pts = <Position>[];
     pts.add(entrance);
@@ -55,23 +49,19 @@ class NavigationPathPainter extends CustomPainter {
     final dX = destination.x;
     final dY = destination.y;
 
-    // Short distance: direct path
     if ((eY - dY).abs() < 8 && (eX - dX).abs() < 8) {
       pts.add(destination);
       return pts;
     }
 
-    // Step 1: move to corridor Y from entrance
     if ((eY - corridorY).abs() > 5) {
       pts.add(Position(x: eX, y: corridorY));
     }
 
-    // Step 2: move horizontally along corridor to destination X
     if ((eX - dX).abs() > 5) {
       pts.add(Position(x: dX, y: corridorY));
     }
 
-    // Step 3: move from corridor to destination Y
     if ((corridorY - dY).abs() > 5) {
       pts.add(Position(x: dX, y: dY));
     }
@@ -110,7 +100,6 @@ class NavigationPathPainter extends CustomPainter {
     final totalLength = metrics.fold<double>(0, (sum, m) => sum + m.length);
     final revealLength = totalLength * progress.clamp(0.0, 1.0);
 
-    // Extract the revealed portion of the path.
     final revealedPath = Path();
     double remaining = revealLength;
     for (final metric in metrics) {
@@ -120,17 +109,17 @@ class NavigationPathPainter extends CustomPainter {
       remaining -= extract;
     }
 
-    // Glow / shadow layer
-    final glowPaint = Paint()
-      ..color = _pathColor.withOpacity(0.25)
-      ..strokeWidth = _lineWidth + 6
+    // Subtle shadow
+    final shadowPaint = Paint()
+      ..color = _pathColor.withValues(alpha: 0.15)
+      ..strokeWidth = _lineWidth + 4
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawPath(revealedPath, glowPaint);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawPath(revealedPath, shadowPaint);
 
-    // Main path
+    // Main path — clean solid line
     final pathPaint = Paint()
       ..color = _pathColor
       ..strokeWidth = _lineWidth
@@ -139,13 +128,13 @@ class NavigationPathPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
     canvas.drawPath(revealedPath, pathPaint);
 
-    // Direction arrows at 30% intervals
+    // Direction arrows
     _paintArrows(canvas, metrics, totalLength);
 
-    // Entrance marker (pulsing circle)
+    // Entrance marker
     _paintEntranceMarker(canvas, size);
 
-    // Destination marker (pin)
+    // Destination marker
     if (progress >= 1.0) {
       _paintDestinationMarker(canvas, size);
     }
@@ -153,8 +142,8 @@ class NavigationPathPainter extends CustomPainter {
 
   void _paintArrows(Canvas canvas, List<ui.PathMetric> metrics, double totalLength) {
     final arrowPaint = Paint()
-      ..color = Colors.white.withOpacity(0.9)
-      ..strokeWidth = 2.5
+      ..color = Colors.white.withValues(alpha: 0.85)
+      ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
@@ -174,7 +163,7 @@ class NavigationPathPainter extends CustomPainter {
 
         final pos = tangent.position;
         final angle = tangent.angle;
-        const arrowSize = 6.0;
+        const arrowSize = 5.0;
 
         final p1 = Offset(
           pos.dx - arrowSize * cos(angle - 0.5),
@@ -195,65 +184,51 @@ class NavigationPathPainter extends CustomPainter {
 
   void _paintEntranceMarker(Canvas canvas, Size size) {
     final center = _toCanvas(entrance, size);
-    final pulse = 0.8 + 0.6 * sin(pulseValue * 2 * pi);
-    final radius = 10.0 * pulse;
+    final pulse = 0.8 + 0.5 * sin(pulseValue * 2 * pi);
+    final radius = 8.0 * pulse;
+    final markerColor = darkMode ? AppColors.darkBlue : AppColors.blue;
 
-    // Outer pulsing ring
-    final ringPaint = Paint()
-      ..color = AppColors.deepTeal.withOpacity(0.3 * (1.2 - pulse / 1.4))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5;
-    canvas.drawCircle(center, radius + 4, ringPaint);
-
-    // Outer glow
+    // Pulsing ring
     canvas.drawCircle(
       center,
-      14,
+      radius + 3,
       Paint()
-        ..color = AppColors.deepTeal.withOpacity(0.15)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        ..color = markerColor.withValues(alpha: 0.2 * (1.2 - pulse / 1.4))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
     );
 
     // Solid center
-    canvas.drawCircle(center, 8, Paint()..color = AppColors.deepTeal);
+    canvas.drawCircle(center, 7, Paint()..color = markerColor);
     // White inner dot
-    canvas.drawCircle(center, 3.5, Paint()..color = Colors.white);
+    canvas.drawCircle(center, 3, Paint()..color = Colors.white);
   }
 
   void _paintDestinationMarker(Canvas canvas, Size size) {
     final center = _toCanvas(destination, size);
     final color = _pathColor;
 
-    // Outer glow
-    canvas.drawCircle(
-      center,
-      16,
-      Paint()
-        ..color = color.withOpacity(0.2)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
-    );
-
     // Pin body
-    canvas.drawCircle(center, 10, Paint()..color = color);
+    canvas.drawCircle(center, 9, Paint()..color = color);
 
     // White border
     canvas.drawCircle(
       center,
-      10,
+      9,
       Paint()
         ..color = Colors.white
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5,
+        ..strokeWidth = 2,
     );
 
     // Inner dot
-    canvas.drawCircle(center, 4, Paint()..color = Colors.white);
+    canvas.drawCircle(center, 3.5, Paint()..color = Colors.white);
 
-    // Pin pointer triangle
+    // Pin pointer
     final pinPath = Path()
-      ..moveTo(center.dx - 5, center.dy + 8)
-      ..lineTo(center.dx, center.dy + 16)
-      ..lineTo(center.dx + 5, center.dy + 8)
+      ..moveTo(center.dx - 4, center.dy + 7)
+      ..lineTo(center.dx, center.dy + 14)
+      ..lineTo(center.dx + 4, center.dy + 7)
       ..close();
     canvas.drawPath(pinPath, Paint()..color = color);
   }
@@ -267,6 +242,7 @@ class NavigationPathPainter extends CustomPainter {
         oldDelegate.destination.x != destination.x ||
         oldDelegate.destination.y != destination.y ||
         oldDelegate.isEmergency != isEmergency ||
-        oldDelegate.isAccessibility != isAccessibility;
+        oldDelegate.isAccessibility != isAccessibility ||
+        oldDelegate.darkMode != darkMode;
   }
 }

@@ -17,6 +17,7 @@ class HomeScreen extends ConsumerWidget {
     final hospital = ref.watch(selectedHospitalProvider);
     final l10n = AppLocalizations(settings.language);
     final isAccessible = settings.accessibilityMode;
+    final isDark = settings.darkMode;
 
     return Scaffold(
       body: SafeArea(
@@ -33,7 +34,6 @@ class HomeScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Quick toggles
                         Row(
                           children: [
                             _QuickToggle(
@@ -50,7 +50,7 @@ class HomeScreen extends ConsumerWidget {
                               icon: Icons.accessible,
                               label: '',
                               isActive: settings.accessibilityMode,
-                              activeColor: AppColors.gold,
+                              activeColor: AppColors.yellow,
                               onTap: () {
                                 ref.read(settingsProvider.notifier)
                                     .setAccessibilityMode(!settings.accessibilityMode);
@@ -58,30 +58,21 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        // Settings button
                         IconButton(
                           onPressed: () => context.go('/settings'),
-                          icon: const Icon(Icons.settings_rounded),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.surface,
-                            padding: const EdgeInsets.all(12),
+                          icon: Icon(
+                            Icons.settings_outlined,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     // App title
-                    Icon(
-                      Icons.local_hospital_rounded,
-                      size: isAccessible ? 56 : 48,
-                      color: AppColors.deepTeal,
-                    ),
-                    const SizedBox(height: 12),
                     Text(
                       l10n.appTitle,
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontSize: isAccessible ? 34 : 28,
-                        color: AppColors.deepTeal,
+                        fontSize: isAccessible ? 34 : 26,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -89,23 +80,23 @@ class HomeScreen extends ConsumerWidget {
                       l10n.appTagline,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontSize: isAccessible ? 16 : 14,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    // Hospital name chip
+                    const SizedBox(height: 12),
+                    // Hospital name chip — Notion tag style
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.deepTeal.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        color: isDark ? AppColors.darkHighlight : AppColors.blueBg,
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
                         hospital.name.get(settings.language),
                         style: TextStyle(
-                          color: AppColors.deepTeal,
-                          fontSize: isAccessible ? 14 : 12,
-                          fontWeight: FontWeight.w600,
+                          color: isDark ? AppColors.darkBlue : AppColors.blue,
+                          fontSize: isAccessible ? 13 : 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -115,39 +106,43 @@ class HomeScreen extends ConsumerWidget {
                       crossAxisCount: 2,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       childAspectRatio: 1.0,
                       children: [
                         FeatureCard(
                           icon: Icons.search_rounded,
                           title: l10n.searchClinics,
                           subtitle: l10n.searchClinicsDesc,
-                          color: AppColors.deepTeal,
+                          color: AppColors.blue,
+                          chipBg: AppColors.blueBg,
                           onTap: () => context.go('/map'),
                           isAccessible: isAccessible,
                         ),
                         FeatureCard(
-                          icon: Icons.people_rounded,
+                          icon: Icons.people_outlined,
                           title: l10n.visitPatient,
                           subtitle: l10n.visitPatientDesc,
-                          color: const Color(0xFF7C3AED),
+                          color: AppColors.purple,
+                          chipBg: AppColors.purpleBg,
                           onTap: () => context.go('/visitor'),
                           isAccessible: isAccessible,
                         ),
                         FeatureCard(
-                          icon: Icons.calendar_month_rounded,
+                          icon: Icons.calendar_month_outlined,
                           title: l10n.myAppointments,
                           subtitle: l10n.myAppointmentsDesc,
-                          color: AppColors.datePalmGreen,
+                          color: AppColors.green,
+                          chipBg: AppColors.greenBg,
                           onTap: () => context.go('/appointments'),
                           isAccessible: isAccessible,
                         ),
                         FeatureCard(
-                          icon: Icons.emergency_rounded,
+                          icon: Icons.emergency_outlined,
                           title: l10n.emergency,
                           subtitle: l10n.emergencyDesc,
-                          color: AppColors.terracotta,
+                          color: AppColors.red,
+                          chipBg: AppColors.redBg,
                           onTap: () => context.go('/emergency'),
                           isAccessible: isAccessible,
                         ),
@@ -182,28 +177,40 @@ class _QuickToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? (activeColor ?? AppColors.deepTeal) : null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeBg = isActive
+        ? (activeColor ?? AppColors.blue).withValues(alpha: 0.15)
+        : (isDark ? AppColors.darkHighlight : AppColors.highlight);
+    final activeText = isActive
+        ? (activeColor ?? AppColors.blue)
+        : Theme.of(context).colorScheme.onSurface;
 
     return Material(
-      color: color?.withOpacity(0.1) ?? Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
+      color: activeBg,
+      borderRadius: BorderRadius.circular(6),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isActive ? Colors.transparent : (isDark ? AppColors.darkBorder : AppColors.border),
+            ),
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: color ?? Theme.of(context).colorScheme.onSurface),
+              Icon(icon, size: 16, color: activeText),
               if (label.isNotEmpty) ...[
                 const SizedBox(width: 4),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: color ?? Theme.of(context).colorScheme.onSurface,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: activeText,
                   ),
                 ),
               ],

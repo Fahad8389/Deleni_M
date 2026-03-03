@@ -31,7 +31,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       builder: (context) => const CreateAppointmentSheet(),
     );
@@ -58,6 +58,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
     final l10n = AppLocalizations(settings.language);
     final isAccessible = settings.accessibilityMode;
     final selectedDest = ref.watch(selectedDestinationProvider);
+    final isDark = settings.darkMode;
 
     return Scaffold(
       body: SafeArea(
@@ -75,21 +76,19 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                         : () => context.go('/'),
                   ),
                   const Spacer(),
-                  Icon(Icons.calendar_month_rounded, color: AppColors.datePalmGreen, size: isAccessible ? 28 : 24),
-                  const SizedBox(width: 8),
                   Text(
                     l10n.myAppointments,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontSize: isAccessible ? 22 : 18,
+                      fontSize: isAccessible ? 20 : 17,
                     ),
                   ),
                   const Spacer(),
                   if (_navigatingTo == null)
                     IconButton(
                       onPressed: _showCreateSheet,
-                      icon: const Icon(Icons.add_rounded),
+                      icon: const Icon(Icons.add_rounded, size: 20),
                       style: IconButton.styleFrom(
-                        backgroundColor: AppColors.datePalmGreen,
+                        backgroundColor: isDark ? AppColors.darkBlue : AppColors.blue,
                         foregroundColor: Colors.white,
                       ),
                     )
@@ -118,6 +117,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
     final routeInfo = ref.watch(routeInfoProvider);
     final repo = ref.read(hospitalRepositoryProvider);
     final dest = repo.findDestinationById(_navigatingTo!.destinationId);
+    final isDark = settings.darkMode;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -126,16 +126,16 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
           if (dest != null)
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.datePalmGreen.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.greenBg,
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Icon(Icons.medical_services_rounded, color: AppColors.datePalmGreen),
+                      child: const Icon(Icons.medical_services_outlined, color: AppColors.green, size: 22),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -144,11 +144,11 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                         children: [
                           Text(
                             dest.name.get(settings.language),
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: isAccessible ? 17 : 15),
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: isAccessible ? 15 : 14),
                           ),
                           Text(
                             '${localizeDate(DateTime.parse(_navigatingTo!.date), settings.language)} • ${localizeTime(_navigatingTo!.time, settings.language)}',
-                            style: TextStyle(fontSize: isAccessible ? 13 : 11, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -159,11 +159,15 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                         children: [
                           Text(
                             '${localizeNumber(routeInfo.distanceMeters, settings.language)} ${l10n.meters}',
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: isAccessible ? 17 : 15, color: AppColors.datePalmGreen),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: isAccessible ? 15 : 14,
+                              color: isDark ? AppColors.darkBlue : AppColors.blue,
+                            ),
                           ),
                           Text(
                             '${localizeNumber(routeInfo.walkMinutes, settings.language)} ${l10n.minutes}',
-                            style: TextStyle(fontSize: 11),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -187,6 +191,8 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
     AppLocalizations l10n,
     bool isAccessible,
   ) {
+    final isDark = settings.darkMode;
+
     return appointmentsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
@@ -196,35 +202,36 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: isAccessible ? 72 : 56,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkHighlight : AppColors.highlight,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.calendar_month_outlined,
+                    size: isAccessible ? 48 : 40,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   l10n.noAppointments,
                   style: TextStyle(
-                    fontSize: isAccessible ? 20 : 18,
+                    fontSize: isAccessible ? 18 : 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   l10n.noAppointmentsDesc,
-                  style: TextStyle(
-                    fontSize: isAccessible ? 15 : 13,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 ElevatedButton.icon(
                   onPressed: _showCreateSheet,
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(Icons.add, size: 18),
                   label: Text(l10n.createAppointment),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.datePalmGreen,
-                  ),
                 ),
               ],
             ),

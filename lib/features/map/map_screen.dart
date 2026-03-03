@@ -71,13 +71,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final l10n = AppLocalizations(lang);
     final isRtl = l10n.isArabic;
 
-    final bgColor = isDark ? AppColors.midnightIndigo : AppColors.warmSand;
-    final cardColor = isDark ? AppColors.darkSurface : AppColors.alabaster;
-    final textColor = isDark ? AppColors.textLight : AppColors.textDark;
+    final bgColor = isDark ? AppColors.darkBackground : AppColors.background;
+    final cardColor = isDark ? AppColors.darkSurface : AppColors.surface;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
     final subtitleColor =
-        isDark ? AppColors.subtitleLight : AppColors.subtitleDark;
+        isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
     final dividerColor =
-        isDark ? AppColors.dividerDark : AppColors.dividerLight;
+        isDark ? AppColors.darkDivider : AppColors.divider;
 
     final currentFloor =
         hospital.floorById(floorIndex) ?? hospital.floors.first;
@@ -88,7 +88,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       child: Scaffold(
         backgroundColor: bgColor,
         appBar: AppBar(
-          backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
+          backgroundColor: isDark ? AppColors.darkSurface : AppColors.surface,
           elevation: 0,
           leading: IconButton(
             icon: Icon(
@@ -317,17 +317,8 @@ class _SearchBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: dividerColor),
-        boxShadow: isDark
-            ? []
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
       ),
       child: Row(
         children: [
@@ -691,7 +682,7 @@ class _BottomPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(18)),
+            const BorderRadius.vertical(top: Radius.circular(12)),
         boxShadow: [
           BoxShadow(
             color:

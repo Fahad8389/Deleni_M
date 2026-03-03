@@ -16,6 +16,7 @@ class SettingsScreen extends ConsumerWidget {
     final hospitals = ref.watch(hospitalsProvider);
     final l10n = AppLocalizations(settings.language);
     final isAccessible = settings.accessibilityMode;
+    final isDark = settings.darkMode;
 
     return Scaffold(
       body: SafeArea(
@@ -28,16 +29,14 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   const AppBackButton(),
                   const Spacer(),
-                  Icon(Icons.settings_rounded, color: AppColors.deepTeal, size: isAccessible ? 28 : 24),
-                  const SizedBox(width: 8),
                   Text(
                     l10n.settings,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontSize: isAccessible ? 22 : 18,
+                      fontSize: isAccessible ? 20 : 17,
                     ),
                   ),
                   const Spacer(),
-                  const SizedBox(width: 80), // Balance
+                  const SizedBox(width: 80),
                 ],
               ),
             ),
@@ -65,15 +64,15 @@ class SettingsScreen extends ConsumerWidget {
                             title: Text(
                               h.name.get(settings.language),
                               style: TextStyle(
-                                fontSize: isAccessible ? 16 : 14,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                fontSize: isAccessible ? 15 : 14,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                               ),
                             ),
                             subtitle: Text(
                               h.address.get(settings.language),
-                              style: TextStyle(fontSize: isAccessible ? 13 : 11),
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                            activeColor: AppColors.deepTeal,
+                            activeColor: isDark ? AppColors.darkBlue : AppColors.blue,
                           );
                         }).toList(),
                       ),
@@ -84,7 +83,7 @@ class SettingsScreen extends ConsumerWidget {
                   // Appearance
                   _SectionTitle(title: l10n.appearance, isAccessible: isAccessible),
                   _SettingsTile(
-                    icon: Icons.dark_mode_rounded,
+                    icon: Icons.dark_mode_outlined,
                     title: l10n.darkMode,
                     subtitle: l10n.darkModeDesc,
                     isAccessible: isAccessible,
@@ -102,7 +101,11 @@ class SettingsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          Icon(Icons.language_rounded, color: AppColors.deepTeal, size: isAccessible ? 24 : 20),
+                          Icon(
+                            Icons.language_outlined,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                            size: isAccessible ? 22 : 20,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Row(
@@ -132,8 +135,8 @@ class SettingsScreen extends ConsumerWidget {
                   // Accessibility
                   _SectionTitle(title: l10n.accessibility, isAccessible: isAccessible),
                   _SettingsTile(
-                    icon: Icons.accessible_rounded,
-                    iconColor: AppColors.gold,
+                    icon: Icons.accessible_outlined,
+                    iconColor: AppColors.yellow,
                     title: l10n.accessibilityMode,
                     subtitle: l10n.accessibilityModeDesc,
                     isAccessible: isAccessible,
@@ -147,7 +150,7 @@ class SettingsScreen extends ConsumerWidget {
                   // Notifications
                   _SectionTitle(title: l10n.notifications, isAccessible: isAccessible),
                   _SettingsTile(
-                    icon: Icons.notifications_rounded,
+                    icon: Icons.notifications_outlined,
                     title: l10n.notifications,
                     subtitle: l10n.notificationsDesc,
                     isAccessible: isAccessible,
@@ -169,25 +172,19 @@ class SettingsScreen extends ConsumerWidget {
                           Text(
                             l10n.aboutDesc,
                             style: TextStyle(
-                              fontSize: isAccessible ? 15 : 13,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                              fontSize: isAccessible ? 14 : 13,
+                              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 12),
                           Text(
                             '${l10n.version} ${AppConstants.appVersion}',
-                            style: TextStyle(
-                              fontSize: isAccessible ? 13 : 11,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           Text(
                             l10n.madeWith,
-                            style: TextStyle(
-                              fontSize: isAccessible ? 13 : 11,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -215,11 +212,14 @@ class _SectionTitle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
-        title,
+        title.toUpperCase(),
         style: TextStyle(
-          fontSize: isAccessible ? 15 : 13,
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          fontSize: isAccessible ? 12 : 11,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkTextSecondary
+              : AppColors.textSecondary,
         ),
       ),
     );
@@ -245,11 +245,16 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       child: ListTile(
-        leading: Icon(icon, color: iconColor ?? AppColors.deepTeal, size: isAccessible ? 24 : 20),
-        title: Text(title, style: TextStyle(fontSize: isAccessible ? 16 : 14, fontWeight: FontWeight.w500)),
-        subtitle: Text(subtitle, style: TextStyle(fontSize: isAccessible ? 13 : 11)),
+        leading: Icon(
+          icon,
+          color: iconColor ?? (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
+          size: isAccessible ? 22 : 20,
+        ),
+        title: Text(title, style: TextStyle(fontSize: isAccessible ? 15 : 14, fontWeight: FontWeight.w500)),
+        subtitle: Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
         trailing: trailing,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       ),
@@ -272,22 +277,31 @@ class _LangButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedColor = isDark ? AppColors.darkBlue : AppColors.blue;
+
     return Expanded(
       child: Material(
-        color: isSelected ? AppColors.deepTeal : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
+        color: isSelected ? selectedColor : Colors.transparent,
+        borderRadius: BorderRadius.circular(6),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(6),
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: isAccessible ? 12 : 10),
+            padding: EdgeInsets.symmetric(vertical: isAccessible ? 10 : 8),
             alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              border: isSelected
+                  ? null
+                  : Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+            ),
             child: Text(
               label,
               style: TextStyle(
                 color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-                fontSize: isAccessible ? 15 : 13,
+                fontWeight: FontWeight.w500,
+                fontSize: isAccessible ? 14 : 13,
               ),
             ),
           ),

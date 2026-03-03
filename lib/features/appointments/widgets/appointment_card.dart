@@ -83,35 +83,35 @@ class _AppointmentCardState extends ConsumerState<AppointmentCard> {
       child: InkWell(
         onTap: widget.onNavigate,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row
+              // Header row — countdown chip + delete
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColors.datePalmGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.greenBg,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       _countdown,
                       style: TextStyle(
-                        color: AppColors.datePalmGreen,
-                        fontSize: isAccessible ? 12 : 10,
-                        fontWeight: FontWeight.w700,
+                        color: AppColors.green,
+                        fontSize: isAccessible ? 11 : 10,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                   InkWell(
                     onTap: widget.onDelete,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(4),
                     child: const Padding(
                       padding: EdgeInsets.all(4),
-                      child: Icon(Icons.delete_outline, size: 18, color: AppColors.terracotta),
+                      child: Icon(Icons.delete_outline, size: 16, color: AppColors.red),
                     ),
                   ),
                 ],
@@ -122,21 +122,18 @@ class _AppointmentCardState extends ConsumerState<AppointmentCard> {
                 Text(
                   dest.name.get(settings.language),
                   style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: isAccessible ? 15 : 13,
+                    fontWeight: FontWeight.w600,
+                    fontSize: isAccessible ? 14 : 13,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               // Hospital name
               if (hospital != null)
                 Text(
                   hospital.name.get(settings.language),
-                  style: TextStyle(
-                    fontSize: isAccessible ? 12 : 10,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                  ),
+                  style: Theme.of(context).textTheme.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -144,12 +141,14 @@ class _AppointmentCardState extends ConsumerState<AppointmentCard> {
               // Date & time
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                  Icon(Icons.calendar_today_outlined, size: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkTextSecondary : AppColors.textSecondary),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       localizeDate(DateTime.parse(widget.appointment.date), settings.language),
-                      style: TextStyle(fontSize: isAccessible ? 12 : 10),
+                      style: Theme.of(context).textTheme.bodySmall,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -158,11 +157,13 @@ class _AppointmentCardState extends ConsumerState<AppointmentCard> {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.access_time, size: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                  Icon(Icons.access_time, size: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkTextSecondary : AppColors.textSecondary),
                   const SizedBox(width: 4),
                   Text(
                     localizeTime(widget.appointment.time, settings.language),
-                    style: TextStyle(fontSize: isAccessible ? 12 : 10),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -172,13 +173,14 @@ class _AppointmentCardState extends ConsumerState<AppointmentCard> {
                 width: double.infinity,
                 child: TextButton.icon(
                   onPressed: widget.onNavigate,
-                  icon: const Icon(Icons.navigation_rounded, size: 14),
+                  icon: const Icon(Icons.navigation_outlined, size: 14),
                   label: Text(
                     l10n.navigateToClinic,
                     style: TextStyle(fontSize: isAccessible ? 12 : 10),
                   ),
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.datePalmGreen,
+                    foregroundColor: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkBlue : AppColors.blue,
                     padding: const EdgeInsets.symmetric(vertical: 4),
                   ),
                 ),

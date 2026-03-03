@@ -5,6 +5,7 @@ class FeatureCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final Color color;
+  final Color chipBg;
   final VoidCallback onTap;
   final bool isAccessible;
 
@@ -14,6 +15,7 @@ class FeatureCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.color,
+    required this.chipBg,
     required this.onTap,
     this.isAccessible = false,
   });
@@ -29,36 +31,34 @@ class FeatureCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Notion-style colored chip icon
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  color: chipBg,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Icon(
                   icon,
                   color: color,
-                  size: isAccessible ? 28 : 24,
+                  size: isAccessible ? 24 : 20,
                 ),
               ),
               const Spacer(),
               Text(
                 title,
                 style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: isAccessible ? 16 : 14,
+                  fontWeight: FontWeight.w600,
+                  fontSize: isAccessible ? 15 : 14,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: TextStyle(
-                  fontSize: isAccessible ? 13 : 11,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                ),
+                style: Theme.of(context).textTheme.bodySmall,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
