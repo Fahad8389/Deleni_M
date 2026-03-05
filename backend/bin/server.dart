@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf_static/shelf_static.dart';
 
 /// CORS middleware — allow all origins (hackathon MVP).
 Middleware corsMiddleware() {
@@ -47,14 +48,6 @@ void main() async {
   }
 
   final router = Router();
-
-  // Root / health check
-  router.get('/', (Request request) {
-    return Response.ok(
-      jsonEncode({'status': 'ok', 'service': 'delini-backend', 'timestamp': DateTime.now().toIso8601String()}),
-      headers: {'Content-Type': 'application/json'},
-    );
-  });
 
   router.get('/health', (Request request) {
     return Response.ok(
@@ -160,14 +153,52 @@ void main() async {
     }
   });
 
-  final handler = const Pipeline()
-      .addMiddleware(corsMiddleware())
-      .addMiddleware(logMiddleware())
-      .addHandler(router.call);
+  // Determine public directory path (works both locally and in Docker)
+  final scriptDir = File(Platform.script.toFilePath()).parent.path;
+  var publicDir = '$scriptDir/../public';
+  if (!Directory(publicDir).existsSync()) {
+    publicDir = '/app/public';
+  }
+
+  // Static file handler for Flutter web app
+  final staticHandler = Directory(publicDir).existsSync()
+      ? createStaticHandler(publicDir, defaultDocument: 'index.html')
+      : null;
+
+  // Cascade: try API routes first, then static files
+  Handler appHandler;
+  if (staticHandler != null) {
+    final apiHandler = const Pipeline()
+        .addMiddleware(corsMiddleware())
+        .addMiddleware(logMiddleware())
+        .addHandler(router.call);
+
+    appHandler = (Request request) async {
+      // API routes
+      if (request.url.path == 'health' ||
+          request.url.path == 'analyze-floor-plan') {
+        return apiHandler(request);
+      }
+      // Serve static files, fallback to index.html for SPA routing
+      try {
+        final response = await staticHandler(request);
+        if (response.statusCode != 404) return response;
+      } catch (_) {}
+      // SPA fallback — serve index.html for any unmatched route
+      return staticHandler(Request('GET', Uri.parse('/')));
+    };
+  } else {
+    print('WARNING: public/ directory not found. Serving API only.');
+    appHandler = const Pipeline()
+        .addMiddleware(corsMiddleware())
+        .addMiddleware(logMiddleware())
+        .addHandler(router.call);
+  }
 
   final port = int.parse(Platform.environment['PORT'] ?? '8080');
-  final server = await io.serve(handler, InternetAddress.anyIPv4, port);
+  final server = await io.serve(appHandler, InternetAddress.anyIPv4, port);
   print('Delini backend running on port ${server.port}');
+  if (staticHandler != null) print('Serving Flutter web app from $publicDir');
 }
 
 String _guessMediaType(String base64Data) {

@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import '../models/generated_floor_plan.dart';
 
 class FloorPlanApiService {
-  // Update after deploying to Render
-  static const _baseUrl = 'https://deleni-m.onrender.com';
+  // Same-origin: Flutter web app is served from the same backend
+  static const _baseUrl = '';
 
   Future<GeneratedFloorPlan> analyzeFloorPlan({
     required String imageBase64,
