@@ -46,28 +46,36 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
   void _findRoom(String roomInput) {
     final trimmed = roomInput.trim();
     if (trimmed.isEmpty) return;
+    final query = trimmed.toLowerCase();
+    final lang = ref.read(settingsProvider).language;
 
-    final hospital = ref.read(selectedHospitalProvider);
-    final match = hospital.allDestinations.where((d) {
-      final room = d.roomNumber?.toLowerCase() ?? '';
-      return room == trimmed.toLowerCase();
-    }).toList();
+    // Search across all hospitals: room number, name (EN/AR), and destination ID
+    final repo = ref.read(hospitalRepositoryProvider);
+    for (final hospital in repo.getAll()) {
+      for (final dest in hospital.allDestinations) {
+        final roomMatch = dest.roomNumber?.toLowerCase() == query;
+        final nameEnMatch = dest.name.en.toLowerCase().contains(query);
+        final nameArMatch = dest.name.ar.contains(trimmed);
+        final idMatch = dest.id.toLowerCase().contains(query);
 
-    if (match.isNotEmpty) {
-      final dest = match.first;
-      ref.read(selectedDestinationProvider.notifier).state = dest;
-      ref.read(selectedFloorProvider.notifier).state = dest.floor;
-      setState(() {
-        _showMap = true;
-        _errorMessage = null;
-        _foundDestination = dest;
-      });
-    } else {
-      setState(() {
-        _errorMessage =
-            AppLocalizations(ref.read(settingsProvider).language).roomNotFound;
-      });
+        if (roomMatch || nameEnMatch || nameArMatch || idMatch) {
+          // Switch to this hospital if different
+          ref.read(settingsProvider.notifier).setDefaultHospitalId(hospital.id);
+          ref.read(selectedDestinationProvider.notifier).state = dest;
+          ref.read(selectedFloorProvider.notifier).state = dest.floor;
+          setState(() {
+            _showMap = true;
+            _errorMessage = null;
+            _foundDestination = dest;
+          });
+          return;
+        }
+      }
     }
+
+    setState(() {
+      _errorMessage = AppLocalizations(lang).roomNotFound;
+    });
   }
 
   void _resetToInput() {
@@ -206,7 +214,7 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
                   ),
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
-                    hintText: '101',
+                    hintText: loc.isArabic ? 'الصيدلية أو 101' : 'Pharmacy or 101',
                     hintStyle: TextStyle(
                       fontSize: 24 * baseFontSize,
                       fontWeight: FontWeight.w400,
@@ -291,10 +299,15 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: ['101', '102', '201', '202'].map((room) {
+          children: [
+            _QuickChip(label: loc.isArabic ? 'الطوارئ' : 'Emergency', icon: Icons.local_hospital_outlined),
+            _QuickChip(label: loc.isArabic ? 'الصيدلية' : 'Pharmacy', icon: Icons.local_pharmacy_outlined),
+            _QuickChip(label: '101', icon: Icons.meeting_room_outlined),
+            _QuickChip(label: '201', icon: Icons.meeting_room_outlined),
+          ].map((chip) {
             return ActionChip(
               label: Text(
-                '${loc.roomNumber}$room',
+                chip.label,
                 style: TextStyle(
                   fontSize: 13 * baseFontSize,
                   fontWeight: FontWeight.w500,
@@ -302,7 +315,7 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
                 ),
               ),
               avatar: Icon(
-                Icons.meeting_room_outlined,
+                chip.icon,
                 size: 16,
                 color: isDark ? AppColors.darkBlue : AppColors.blue,
               ),
@@ -312,8 +325,8 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
                 borderRadius: BorderRadius.circular(4),
               ),
               onPressed: () {
-                _roomController.text = room;
-                _findRoom(room);
+                _roomController.text = chip.label;
+                _findRoom(chip.label);
               },
             );
           }).toList(),
@@ -494,4 +507,10 @@ class _VisitorStep extends StatelessWidget {
       ],
     );
   }
+}
+
+class _QuickChip {
+  final String label;
+  final IconData icon;
+  const _QuickChip({required this.label, required this.icon});
 }
