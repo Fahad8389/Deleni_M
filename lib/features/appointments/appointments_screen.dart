@@ -26,6 +26,7 @@ class AppointmentsScreen extends ConsumerStatefulWidget {
 class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
     with SingleTickerProviderStateMixin {
   Appointment? _navigatingTo;
+  int? _userFloor;
   late AnimationController _pulseAnim;
 
   @override
@@ -82,11 +83,141 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
       final hospital = repo.getById(appointment.hospitalId);
       if (hospital != null) {
         ref.read(settingsProvider.notifier).setDefaultHospitalId(hospital.id);
-        ref.read(selectedFloorProvider.notifier).state = dest.floor;
-        ref.read(selectedDestinationProvider.notifier).state = dest;
+        setState(() => _navigatingTo = appointment);
+        _showFloorPicker(dest, hospital);
       }
+    } else {
+      setState(() => _navigatingTo = appointment);
     }
-    setState(() => _navigatingTo = appointment);
+  }
+
+  void _showFloorPicker(Destination dest, Hospital hospital) {
+    final settings = ref.read(settingsProvider);
+    final lang = settings.language;
+    final l10n = AppLocalizations(lang);
+    final isDark = settings.darkMode;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final cardColor = isDark ? AppColors.darkSurface : AppColors.surface;
+    final dividerColor = isDark ? AppColors.darkDivider : AppColors.divider;
+
+    final destFloor = hospital.floorById(dest.floor);
+    final destFloorName = destFloor?.name.get(lang) ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36, height: 4,
+                  decoration: BoxDecoration(
+                    color: subtitleColor.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    width: 32, height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.greenBg,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
+                    ),
+                    child: const Icon(Icons.local_hospital_outlined, color: AppColors.green, size: 16),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          dest.name.get(lang),
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: textColor),
+                        ),
+                        Text(
+                          l10n.destinationOnFloor(destFloorName),
+                          style: TextStyle(fontSize: 12, color: subtitleColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.whichFloorAreYouOn,
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: textColor),
+              ),
+              const SizedBox(height: 12),
+              ...hospital.floors.map((f) {
+                final isDestFloor = f.id == dest.floor;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Material(
+                    color: isDestFloor
+                        ? (isDark ? AppColors.darkHighlight : AppColors.highlight)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() => _userFloor = f.id);
+                        ref.read(selectedFloorProvider.notifier).state = f.id;
+                        ref.read(selectedDestinationProvider.notifier).state = dest;
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: dividerColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.layers_outlined, size: 20,
+                              color: isDestFloor ? (isDark ? AppColors.darkBlue : AppColors.blue) : subtitleColor),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(f.name.get(lang),
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textColor)),
+                            ),
+                            if (isDestFloor)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.greenBg,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.5),
+                                ),
+                                child: Text(l10n.destination,
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.green)),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -110,7 +241,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
                 children: [
                   AppBackButton(
                     onPressed: _navigatingTo != null
-                        ? () => setState(() => _navigatingTo = null)
+                        ? () => setState(() { _navigatingTo = null; _userFloor = null; })
                         : () => context.go('/'),
                   ),
                   const Spacer(),
@@ -227,6 +358,7 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
           NavigationMapWidget(
             destination: selectedDest,
             height: 300,
+            userFloor: _userFloor,
           ),
         ],
       ),

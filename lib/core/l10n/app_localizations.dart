@@ -233,11 +233,32 @@ class AppLocalizations {
       _t('Ask hospital staff if you need help finding the room. Room numbers are displayed above each door.',
           'اسأل موظفي المستشفى إذا كنت بحاجة للمساعدة في العثور على الغرفة. أرقام الغرف معروضة فوق كل باب.');
   String get visitorStep1 =>
-      _t('Enter the room number given to you', 'أدخل رقم الغرفة المعطى لك');
+      _t('Enter the patient\'s room number', 'أدخل رقم غرفة المريض');
   String get visitorStep2 =>
-      _t('Follow the path shown on the map', 'اتبع المسار الموضح على الخريطة');
+      _t('Review visiting hours and rules', 'راجع أوقات الزيارة والقواعد');
   String get visitorStep3 =>
-      _t('Check in with the nurse at the station', 'سجل حضورك لدى الممرض/ة في المحطة');
+      _t('Navigate to the room using the map', 'انتقل إلى الغرفة باستخدام الخريطة');
+
+  // Visitor result screen
+  String get visitingHours => _t('Visiting Hours', 'أوقات الزيارة');
+  String get morningVisit => _t('Morning', 'صباحاً');
+  String get eveningVisit => _t('Evening', 'مساءً');
+  String get morningHours => _t('10:00 AM – 12:00 PM', '١٠:٠٠ ص – ١٢:٠٠ م');
+  String get eveningHours => _t('4:00 PM – 9:00 PM', '٤:٠٠ م – ٩:٠٠ م');
+  String get visitingRules => _t('Visiting Rules', 'قواعد الزيارة');
+  String get visitRule1 =>
+      _t('No strong perfumes or fragrances', 'يمنع استخدام العطور القوية');
+  String get visitRule2 =>
+      _t('Maximum 2 visitors at a time', 'حد أقصى زائرَين في وقت واحد');
+  String get visitRule3 =>
+      _t('Keep noise to a minimum', 'حافظ على الهدوء');
+  String get visitRule4 =>
+      _t('Bring a valid ID for check-in', 'أحضر هوية صالحة للتسجيل');
+  String get visitRule5 =>
+      _t('No food unless approved by the nurse', 'لا طعام إلا بموافقة الممرض/ة');
+  String get visitRule6 =>
+      _t('Children under 12 must be accompanied', 'الأطفال دون ١٢ سنة يجب أن يكونوا برفقة بالغ');
+  String get navigateToRoom => _t('Navigate to Room', 'الانتقال إلى الغرفة');
 
   // Appointments enhanced
   String get upcomingAppointments =>

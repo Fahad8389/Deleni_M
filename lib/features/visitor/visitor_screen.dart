@@ -25,6 +25,7 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
   bool _showMap = false;
   String? _errorMessage;
   Destination? _foundDestination;
+  int? _userFloor;
 
   @override
   void initState() {
@@ -61,13 +62,11 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
         if (roomMatch || nameEnMatch || nameArMatch || idMatch) {
           // Switch to this hospital if different
           ref.read(settingsProvider.notifier).setDefaultHospitalId(hospital.id);
-          ref.read(selectedDestinationProvider.notifier).state = dest;
-          ref.read(selectedFloorProvider.notifier).state = dest.floor;
           setState(() {
-            _showMap = true;
             _errorMessage = null;
             _foundDestination = dest;
           });
+          _showFloorPicker(dest, hospital);
           return;
         }
       }
@@ -78,12 +77,145 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
     });
   }
 
+  void _showFloorPicker(Destination dest, Hospital hospital) {
+    final settings = ref.read(settingsProvider);
+    final lang = settings.language;
+    final l10n = AppLocalizations(lang);
+    final isDark = settings.darkMode;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final subtitleColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+    final cardColor = isDark ? AppColors.darkSurface : AppColors.surface;
+    final dividerColor = isDark ? AppColors.darkDivider : AppColors.divider;
+
+    final destFloor = hospital.floorById(dest.floor);
+    final destFloorName = destFloor?.name.get(lang) ?? '';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36, height: 4,
+                  decoration: BoxDecoration(
+                    color: subtitleColor.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    width: 32, height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.purpleBg,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
+                    ),
+                    child: const Icon(Icons.meeting_room_outlined, color: AppColors.purple, size: 16),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          dest.name.get(lang),
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: textColor),
+                        ),
+                        Text(
+                          l10n.destinationOnFloor(destFloorName),
+                          style: TextStyle(fontSize: 12, color: subtitleColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.whichFloorAreYouOn,
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: textColor),
+              ),
+              const SizedBox(height: 12),
+              ...hospital.floors.map((f) {
+                final isDestFloor = f.id == dest.floor;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Material(
+                    color: isDestFloor
+                        ? (isDark ? AppColors.darkHighlight : AppColors.highlight)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        setState(() {
+                          _userFloor = f.id;
+                          _showMap = true;
+                        });
+                        ref.read(selectedFloorProvider.notifier).state = f.id;
+                        ref.read(selectedDestinationProvider.notifier).state = dest;
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: dividerColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.layers_outlined, size: 20,
+                              color: isDestFloor ? (isDark ? AppColors.darkBlue : AppColors.blue) : subtitleColor),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(f.name.get(lang),
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textColor)),
+                            ),
+                            if (isDestFloor)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.purpleBg,
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.5),
+                                ),
+                                child: Text(l10n.destination,
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.purple)),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _resetToInput() {
     ref.read(selectedDestinationProvider.notifier).state = null;
     setState(() {
       _showMap = false;
       _errorMessage = null;
       _foundDestination = null;
+      _userFloor = null;
       _roomController.clear();
     });
   }
@@ -214,7 +346,7 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
                   ),
                   textAlign: TextAlign.center,
                   decoration: InputDecoration(
-                    hintText: loc.isArabic ? 'الصيدلية أو 101' : 'Pharmacy or 101',
+                    hintText: '101',
                     hintStyle: TextStyle(
                       fontSize: 24 * baseFontSize,
                       fontWeight: FontWeight.w400,
@@ -300,10 +432,9 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
           spacing: 8,
           runSpacing: 8,
           children: [
-            _QuickChip(label: loc.isArabic ? 'الطوارئ' : 'Emergency', icon: Icons.local_hospital_outlined),
-            _QuickChip(label: loc.isArabic ? 'الصيدلية' : 'Pharmacy', icon: Icons.local_pharmacy_outlined),
             _QuickChip(label: '101', icon: Icons.meeting_room_outlined),
             _QuickChip(label: '201', icon: Icons.meeting_room_outlined),
+            _QuickChip(label: '202', icon: Icons.meeting_room_outlined),
           ].map((chip) {
             return ActionChip(
               label: Text(
@@ -393,71 +524,230 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen>
     required double baseFontSize,
   }) {
     final roomLabel = _foundDestination?.roomNumber ?? '';
+    final hospital = ref.watch(selectedHospitalProvider);
+    final floorName = _foundDestination != null
+        ? hospital.floors
+            .where((f) => f.id == _foundDestination!.floor)
+            .map((f) => f.name.get(lang))
+            .firstOrNull ?? ''
+        : '';
+    final borderColor = isDark ? Colors.white : const Color(0xFF000000);
 
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
-        // Info card at top
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.purpleBg,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
-                    ),
-                    child: const Icon(Icons.person_pin_circle_outlined, color: AppColors.purple, size: 22),
+        // Header row — back + search again
+        Row(
+          children: [
+            IconButton(
+              onPressed: _resetToInput,
+              icon: Icon(
+                loc.isArabic ? Icons.arrow_forward : Icons.arrow_back,
+                size: 24,
+              ),
+              tooltip: loc.back,
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: _resetToInput,
+              icon: const Icon(Icons.search, size: 16),
+              label: Text(
+                loc.searchAgain,
+                style: TextStyle(fontSize: 13 * baseFontSize, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+
+        // Patient Room Card
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.purpleBg,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: borderColor, width: 1.75),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  child: const Icon(Icons.meeting_room_outlined, color: AppColors.purple, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        roomLabel.isNotEmpty
+                            ? '${loc.roomNumber}$roomLabel'
+                            : _foundDestination?.name.get(lang) ?? '',
+                        style: TextStyle(
+                          fontSize: 16 * baseFontSize,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (_foundDestination != null && roomLabel.isNotEmpty)
                         Text(
-                          '${loc.navigateTo} ${loc.roomNumber}$roomLabel',
+                          _foundDestination!.name.get(lang),
                           style: TextStyle(
-                            fontSize: 15 * baseFontSize,
+                            fontSize: 13 * baseFontSize,
+                            color: isDark ? AppColors.darkBlue : AppColors.blue,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        if (_foundDestination != null)
-                          Text(
-                            _foundDestination!.name.get(lang),
-                            style: TextStyle(
-                              fontSize: 13 * baseFontSize,
-                              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _resetToInput,
-                    child: Text(
-                      loc.searchAgain,
-                      style: TextStyle(
-                        fontSize: 13 * baseFontSize,
-                        fontWeight: FontWeight.w500,
+                      Text(
+                        '$floorName • ${hospital.name.get(lang)}',
+                        style: TextStyle(
+                          fontSize: 12 * baseFontSize,
+                          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
+        const SizedBox(height: 12),
 
-        const SizedBox(height: 8),
-
-        const Expanded(
-          child: NavigationMapWidget(showSearchBar: false),
+        // Visiting Hours Card
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 18, color: AppColors.green),
+                    const SizedBox(width: 8),
+                    Text(
+                      loc.visitingHours,
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14 * baseFontSize),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Morning
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.greenBg,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.wb_sunny_outlined, size: 18, color: AppColors.green),
+                      const SizedBox(width: 10),
+                      Text(
+                        loc.morningVisit,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13 * baseFontSize,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        loc.morningHours,
+                        style: TextStyle(
+                          fontSize: 13 * baseFontSize,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Evening
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.blueBg,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.nightlight_outlined, size: 18, color: isDark ? AppColors.darkBlue : AppColors.blue),
+                      const SizedBox(width: 10),
+                      Text(
+                        loc.eveningVisit,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13 * baseFontSize,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        loc.eveningHours,
+                        style: TextStyle(
+                          fontSize: 13 * baseFontSize,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? AppColors.darkBlue : AppColors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
+        const SizedBox(height: 12),
+
+        // Visiting Rules Card
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.rule_outlined, size: 18, color: AppColors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      loc.visitingRules,
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14 * baseFontSize),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _VisitorStep(number: '1', text: loc.visitRule1, baseFontSize: baseFontSize),
+                const SizedBox(height: 8),
+                _VisitorStep(number: '2', text: loc.visitRule2, baseFontSize: baseFontSize),
+                const SizedBox(height: 8),
+                _VisitorStep(number: '3', text: loc.visitRule3, baseFontSize: baseFontSize),
+                const SizedBox(height: 8),
+                _VisitorStep(number: '4', text: loc.visitRule4, baseFontSize: baseFontSize),
+                const SizedBox(height: 8),
+                _VisitorStep(number: '5', text: loc.visitRule5, baseFontSize: baseFontSize),
+                const SizedBox(height: 8),
+                _VisitorStep(number: '6', text: loc.visitRule6, baseFontSize: baseFontSize),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Navigate to Room button + Map
+        Text(
+          loc.navigateToRoom,
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14 * baseFontSize),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 300,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: NavigationMapWidget(showSearchBar: false, userFloor: _userFloor),
+          ),
+        ),
+        const SizedBox(height: 24),
       ],
     );
   }
