@@ -4,7 +4,7 @@ import '../models/generated_floor_plan.dart';
 
 class FloorPlanApiService {
   // Update after deploying to Render
-  static const _baseUrl = 'http://localhost:8080';
+  static const _baseUrl = 'https://deleni-m.onrender.com';
 
   Future<GeneratedFloorPlan> analyzeFloorPlan({
     required String imageBase64,
