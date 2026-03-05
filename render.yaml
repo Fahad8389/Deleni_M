@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: delini
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PORT
+        value: 8080

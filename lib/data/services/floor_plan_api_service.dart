@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:http/http.dart' as http;
 import '../models/generated_floor_plan.dart';
 
 class FloorPlanApiService {
-  // Same-origin: Flutter web app is served from the same backend
-  static const _baseUrl = '';
+  // In dev mode, backend runs on port 8080. In production (served from backend), use same-origin.
+  static String get _baseUrl =>
+      kIsWeb && !kDebugMode ? '' : 'http://localhost:8080';
 
   Future<GeneratedFloorPlan> analyzeFloorPlan({
     required String imageBase64,
