@@ -2,10 +2,19 @@ import '../datasources/hospital_data.dart';
 import '../models/hospital.dart';
 
 class HospitalRepository {
-  List<Hospital> getAll() => hospitals;
+  List<Hospital> _generatedHospitals = [];
+
+  void setGeneratedHospitals(List<Hospital> generated) {
+    _generatedHospitals = generated;
+  }
+
+  List<Hospital> getAll() => [...hospitals, ..._generatedHospitals];
 
   Hospital? getById(String id) {
     for (final h in hospitals) {
+      if (h.id == id) return h;
+    }
+    for (final h in _generatedHospitals) {
       if (h.id == id) return h;
     }
     return null;
@@ -14,7 +23,7 @@ class HospitalRepository {
   Hospital getDefault() => hospitals.first;
 
   Destination? findDestinationById(String id) {
-    for (final h in hospitals) {
+    for (final h in getAll()) {
       for (final d in h.allDestinations) {
         if (d.id == id) return d;
       }
@@ -26,7 +35,7 @@ class HospitalRepository {
   /// Returns (hospital, destination) or null.
   (Hospital, Destination)? findByRoomNumber(String roomNumber) {
     final q = roomNumber.toLowerCase().trim();
-    for (final h in hospitals) {
+    for (final h in getAll()) {
       for (final d in h.allDestinations) {
         if (d.roomNumber?.toLowerCase() == q) {
           return (h, d);

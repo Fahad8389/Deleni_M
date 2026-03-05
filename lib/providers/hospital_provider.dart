@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/hospital.dart';
 import '../data/repositories/hospital_repository.dart';
+import 'generated_hospital_provider.dart';
 import 'settings_provider.dart';
 
 final hospitalRepositoryProvider = Provider<HospitalRepository>((ref) {
@@ -8,6 +9,8 @@ final hospitalRepositoryProvider = Provider<HospitalRepository>((ref) {
 });
 
 final hospitalsProvider = Provider<List<Hospital>>((ref) {
+  // Watch generated hospitals so the list updates when AI hospitals are added
+  ref.watch(generatedHospitalsProvider);
   return ref.watch(hospitalRepositoryProvider).getAll();
 });
 

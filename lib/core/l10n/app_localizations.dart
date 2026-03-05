@@ -14,6 +14,8 @@ class AppLocalizations {
   String get visitor => _t('Visitor Mode', 'وضع الزائر');
   String get appointments => _t('My Appointments', 'مواعيدي');
   String get emergency => _t('Emergency', 'الطوارئ');
+  String get elevator => _t('Elevator', 'المصعد');
+  String get takingElevator => _t('Taking Elevator...', 'جاري استخدام المصعد...');
   String get accessibility => _t('Accessibility Mode', 'وضع إمكانية الوصول');
   String get language_ => _t('Language', 'اللغة');
   String get selectHospital => _t('Select Hospital', 'اختر المستشفى');
@@ -153,6 +155,19 @@ class AppLocalizations {
       _t('Customize your Delni App experience', 'خصص تجربة تطبيق دلني الخاصة بك');
   String get appointmentPassed => _t('Passed', 'انتهى');
 
+  // Multi-floor navigation
+  String goToFloor(String floorName) =>
+      _t('Go to $floorName', 'اذهب إلى $floorName');
+  String get viaElevatorStairs =>
+      _t('via elevator / stairs', 'عبر المصعد / الدرج');
+  String get showFloorMap => _t('Show Floor Map', 'عرض خريطة الطابق');
+  String get pathToStairs =>
+      _t('Follow path to stairs/elevator', 'اتبع المسار إلى الدرج/المصعد');
+  String get whichFloorAreYouOn =>
+      _t('Which floor are you on?', 'في أي طابق أنت؟');
+  String destinationOnFloor(String floorName) =>
+      _t('Destination is on $floorName', 'الوجهة في $floorName');
+
   // Home screen
   String get appTitle => _t('Delni', 'دلني');
   String get appTagline =>
@@ -211,6 +226,50 @@ class AppLocalizations {
           'لا توجد مواعيد متاحة لهذا التاريخ. يرجى تجربة تاريخ آخر.');
   String remaining(int count) =>
       _t('$count left', '$count متبقي');
+
+  // Visitor screen
+  String get howItWorks => _t('How it works', 'كيف يعمل');
+  String get visitorTip =>
+      _t('Ask hospital staff if you need help finding the room. Room numbers are displayed above each door.',
+          'اسأل موظفي المستشفى إذا كنت بحاجة للمساعدة في العثور على الغرفة. أرقام الغرف معروضة فوق كل باب.');
+  String get visitorStep1 =>
+      _t('Enter the room number given to you', 'أدخل رقم الغرفة المعطى لك');
+  String get visitorStep2 =>
+      _t('Follow the path shown on the map', 'اتبع المسار الموضح على الخريطة');
+  String get visitorStep3 =>
+      _t('Check in with the nurse at the station', 'سجل حضورك لدى الممرض/ة في المحطة');
+
+  // Appointments enhanced
+  String get upcomingAppointments =>
+      _t('Upcoming Appointments', 'المواعيد القادمة');
+  String get appointmentTip =>
+      _t('Arrive 15 minutes before your appointment to complete check-in procedures.',
+          'احضر قبل 15 دقيقة من موعدك لإتمام إجراءات التسجيل.');
+
+  // Add Hospital (AI generation)
+  String get addHospital => _t('Add Hospital', 'إضافة مستشفى');
+  String get addHospitalWithAI =>
+      _t('Add Hospital with AI', 'إضافة مستشفى بالذكاء الاصطناعي');
+  String get uploadFloorPlans =>
+      _t('Upload floor plan images', 'ارفع صور مخططات الطوابق');
+  String get hospitalName => _t('Hospital Name', 'اسم المستشفى');
+  String get hospitalNameHint =>
+      _t('Enter hospital name', 'أدخل اسم المستشفى');
+  String get addFloor => _t('Add Floor', 'إضافة طابق');
+  String get floorName => _t('Floor Name', 'اسم الطابق');
+  String get generateMap => _t('Generate Map', 'إنشاء الخريطة');
+  String get analyzingFloorPlans =>
+      _t('Analyzing floor plans with AI...', 'جاري تحليل المخططات بالذكاء الاصطناعي...');
+  String analyzingFloor(String name, int current, int total) =>
+      _t('Analyzing $name ($current/$total)', 'جاري تحليل $name ($current/$total)');
+  String get generationSuccess =>
+      _t('Hospital map generated successfully!', 'تم إنشاء خريطة المستشفى بنجاح!');
+  String get generationFailed =>
+      _t('Failed to generate map. Please try again.', 'فشل إنشاء الخريطة. حاول مرة أخرى.');
+  String get retry => _t('Retry', 'إعادة المحاولة');
+  String get tapToUpload =>
+      _t('Tap to upload floor plan image', 'اضغط لرفع صورة مخطط الطابق');
+  String get removeFloor => _t('Remove', 'إزالة');
 
   String _t(String en, String ar) => language == 'ar' ? ar : en;
 }

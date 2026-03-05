@@ -6,6 +6,7 @@ import '../../features/visitor/visitor_screen.dart';
 import '../../features/appointments/appointments_screen.dart';
 import '../../features/emergency/emergency_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/add_hospital/add_hospital_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -96,6 +97,23 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => CustomTransitionPage(
         key: state.pageKey,
         child: const SettingsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          );
+        },
+      ),
+    ),
+    GoRoute(
+      path: '/add-hospital',
+      name: 'add-hospital',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const AddHospitalScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
             position: Tween<Offset>(

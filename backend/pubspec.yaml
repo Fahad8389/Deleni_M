@@ -1,0 +1,8 @@
+name: delini_backend
+description: Backend proxy for Delini hospital map generation
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+dependencies:
+  shelf: ^1.4.0
+  shelf_router: ^1.1.0
+  http: ^1.2.0

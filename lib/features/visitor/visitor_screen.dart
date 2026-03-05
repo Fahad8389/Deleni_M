@@ -16,16 +16,28 @@ class VisitorScreen extends ConsumerStatefulWidget {
   ConsumerState<VisitorScreen> createState() => _VisitorScreenState();
 }
 
-class _VisitorScreenState extends ConsumerState<VisitorScreen> {
+class _VisitorScreenState extends ConsumerState<VisitorScreen>
+    with SingleTickerProviderStateMixin {
   final _roomController = TextEditingController();
   final _roomFocusNode = FocusNode();
+  late AnimationController _pulseAnim;
 
   bool _showMap = false;
   String? _errorMessage;
   Destination? _foundDestination;
 
   @override
+  void initState() {
+    super.initState();
+    _pulseAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+  }
+
+  @override
   void dispose() {
+    _pulseAnim.dispose();
     _roomController.dispose();
     _roomFocusNode.dispose();
     super.dispose();
@@ -113,20 +125,24 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen> {
 
         const SizedBox(height: 24),
 
-        // Icon — Notion purple chip style
-        Center(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.purpleBg,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.people_outlined,
-              color: AppColors.purple,
-              size: 36,
-            ),
-          ),
+        // Pulsing icon — like emergency screen
+        AnimatedBuilder(
+          animation: _pulseAnim,
+          builder: (context, _) {
+            return Container(
+              padding: EdgeInsets.all(16 + _pulseAnim.value * 4),
+              decoration: BoxDecoration(
+                color: AppColors.purpleBg,
+                shape: BoxShape.circle,
+                border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
+              ),
+              child: Icon(
+                Icons.person_pin_circle_outlined,
+                color: AppColors.purple,
+                size: baseFontSize > 1.0 ? 44 : 36,
+              ),
+            );
+          },
         ),
 
         const SizedBox(height: 24),
@@ -217,6 +233,7 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.redBg,
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                       ),
                       child: Row(
                         children: [
@@ -302,6 +319,55 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen> {
           }).toList(),
         ),
 
+        const SizedBox(height: 20),
+
+        // Instructions card — like emergency screen
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  loc.howItWorks,
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14 * baseFontSize),
+                ),
+                const SizedBox(height: 12),
+                _VisitorStep(number: '1', text: loc.visitorStep1, baseFontSize: baseFontSize),
+                const SizedBox(height: 8),
+                _VisitorStep(number: '2', text: loc.visitorStep2, baseFontSize: baseFontSize),
+                const SizedBox(height: 8),
+                _VisitorStep(number: '3', text: loc.visitorStep3, baseFontSize: baseFontSize),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Tip banner — like emergency warning
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.purpleBg,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, color: AppColors.purple, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  loc.visitorTip,
+                  style: TextStyle(
+                    fontSize: 12 * baseFontSize,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 24),
       ],
     );
@@ -331,8 +397,9 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.purpleBg,
                       borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                     ),
-                    child: const Icon(Icons.people_outlined, color: AppColors.purple, size: 22),
+                    child: const Icon(Icons.person_pin_circle_outlined, color: AppColors.purple, size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -377,6 +444,52 @@ class _VisitorScreenState extends ConsumerState<VisitorScreen> {
 
         const Expanded(
           child: NavigationMapWidget(showSearchBar: false),
+        ),
+      ],
+    );
+  }
+}
+
+class _VisitorStep extends StatelessWidget {
+  final String number;
+  final String text;
+  final double baseFontSize;
+
+  const _VisitorStep({
+    required this.number,
+    required this.text,
+    this.baseFontSize = 1.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.purpleBg,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: const Color(0xFF000000), width: 1.5),
+          ),
+          child: Text(
+            number,
+            style: TextStyle(
+              color: AppColors.purple,
+              fontWeight: FontWeight.w600,
+              fontSize: 11 * baseFontSize,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 13 * baseFontSize),
+          ),
         ),
       ],
     );

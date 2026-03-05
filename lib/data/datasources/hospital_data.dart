@@ -15,49 +15,51 @@ final List<Hospital> hospitals = [
       Floor(
         id: 0,
         name: const LocaleString(en: 'Ground Floor', ar: 'الطابق الأرضي'),
-        entrance: const Position(x: 15, y: 50),
+        entrance: const Position(x: 7, y: 50),
+        stairsPosition: const Position(x: 52, y: 50),
         destinations: const [
           Destination(
             id: 'emergency-gf',
             name: LocaleString(en: 'Emergency Department', ar: 'قسم الطوارئ'),
             type: DestinationType.emergency,
             floor: 0,
-            position: Position(x: 82, y: 41),
+            position: Position(x: 90, y: 50),
           ),
           Destination(
             id: 'reception-gf',
             name: LocaleString(en: 'Main Reception', ar: 'الاستقبال الرئيسي'),
             type: DestinationType.department,
             floor: 0,
-            position: Position(x: 25, y: 50),
+            position: Position(x: 32, y: 50),
           ),
           Destination(
             id: 'pharmacy-gf',
             name: LocaleString(en: 'Main Pharmacy', ar: 'الصيدلية الرئيسية'),
             type: DestinationType.department,
             floor: 0,
-            position: Position(x: 77, y: 55),
+            position: Position(x: 90, y: 78),
           ),
           Destination(
             id: 'radiology-gf',
             name: LocaleString(en: 'Radiology Department', ar: 'قسم الأشعة'),
             type: DestinationType.department,
             floor: 0,
-            position: Position(x: 47, y: 55),
+            position: Position(x: 16, y: 54),
           ),
         ],
       ),
       Floor(
         id: 1,
         name: const LocaleString(en: 'First Floor', ar: 'الطابق الأول'),
-        entrance: const Position(x: 15, y: 50),
+        entrance: const Position(x: 7, y: 50),
+        stairsPosition: const Position(x: 52, y: 50),
         destinations: const [
           Destination(
             id: 'cardiology-1f',
             name: LocaleString(en: 'Cardiology Clinic', ar: 'عيادة القلب'),
             type: DestinationType.clinic,
             floor: 1,
-            position: Position(x: 40, y: 30),
+            position: Position(x: 90, y: 22),
             roomNumber: '105',
           ),
           Destination(
@@ -65,7 +67,7 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'Neurology Clinic', ar: 'عيادة الأعصاب'),
             type: DestinationType.clinic,
             floor: 1,
-            position: Position(x: 60, y: 30),
+            position: Position(x: 90, y: 50),
             roomNumber: '108',
           ),
           Destination(
@@ -73,7 +75,7 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'Orthopedics Clinic', ar: 'عيادة العظام'),
             type: DestinationType.clinic,
             floor: 1,
-            position: Position(x: 75, y: 50),
+            position: Position(x: 62, y: 75),
             roomNumber: '110',
           ),
           Destination(
@@ -81,7 +83,7 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'Room 101', ar: 'غرفة ١٠١'),
             type: DestinationType.room,
             floor: 1,
-            position: Position(x: 35, y: 70),
+            position: Position(x: 16, y: 22),
             roomNumber: '101',
           ),
           Destination(
@@ -89,7 +91,7 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'Room 102', ar: 'غرفة ١٠٢'),
             type: DestinationType.room,
             floor: 1,
-            position: Position(x: 50, y: 70),
+            position: Position(x: 16, y: 54),
             roomNumber: '102',
           ),
         ],
@@ -97,14 +99,15 @@ final List<Hospital> hospitals = [
       Floor(
         id: 2,
         name: const LocaleString(en: 'Second Floor', ar: 'الطابق الثاني'),
-        entrance: const Position(x: 15, y: 50),
+        entrance: const Position(x: 7, y: 50),
+        stairsPosition: const Position(x: 52, y: 50),
         destinations: const [
           Destination(
             id: 'pediatrics-2f',
             name: LocaleString(en: 'Pediatrics Clinic', ar: 'عيادة الأطفال'),
             type: DestinationType.clinic,
             floor: 2,
-            position: Position(x: 45, y: 25),
+            position: Position(x: 90, y: 22),
             roomNumber: '203',
           ),
           Destination(
@@ -112,7 +115,7 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'Dermatology Clinic', ar: 'عيادة الجلدية'),
             type: DestinationType.clinic,
             floor: 2,
-            position: Position(x: 65, y: 25),
+            position: Position(x: 90, y: 50),
             roomNumber: '205',
           ),
           Destination(
@@ -120,14 +123,14 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'ICU Department', ar: 'وحدة العناية المركزة'),
             type: DestinationType.department,
             floor: 2,
-            position: Position(x: 80, y: 50),
+            position: Position(x: 65, y: 76),
           ),
           Destination(
             id: 'room-201',
             name: LocaleString(en: 'Room 201', ar: 'غرفة ٢٠١'),
             type: DestinationType.room,
             floor: 2,
-            position: Position(x: 40, y: 65),
+            position: Position(x: 16, y: 22),
             roomNumber: '201',
           ),
           Destination(
@@ -135,7 +138,7 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'Room 202', ar: 'غرفة ٢٠٢'),
             type: DestinationType.room,
             floor: 2,
-            position: Position(x: 55, y: 65),
+            position: Position(x: 16, y: 54),
             roomNumber: '202',
           ),
         ],
@@ -156,35 +159,37 @@ final List<Hospital> hospitals = [
       Floor(
         id: 0,
         name: const LocaleString(en: 'Ground Floor', ar: 'الطابق الأرضي'),
-        entrance: const Position(x: 20, y: 50),
+        entrance: const Position(x: 7, y: 50),
+        stairsPosition: const Position(x: 52, y: 50),
         destinations: const [
           Destination(
             id: 'emergency-rc-gf',
             name: LocaleString(en: 'Emergency Department', ar: 'قسم الطوارئ'),
             type: DestinationType.emergency,
             floor: 0,
-            position: Position(x: 75, y: 35),
+            position: Position(x: 88, y: 55),
           ),
           Destination(
             id: 'lab-rc-gf',
             name: LocaleString(en: 'Laboratory', ar: 'المختبر'),
             type: DestinationType.department,
             floor: 0,
-            position: Position(x: 60, y: 65),
+            position: Position(x: 18, y: 70),
           ),
         ],
       ),
       Floor(
         id: 1,
         name: const LocaleString(en: 'First Floor', ar: 'الطابق الأول'),
-        entrance: const Position(x: 20, y: 50),
+        entrance: const Position(x: 7, y: 50),
+        stairsPosition: const Position(x: 52, y: 50),
         destinations: const [
           Destination(
             id: 'ent-rc-1f',
             name: LocaleString(en: 'ENT Clinic', ar: 'عيادة الأنف والأذن والحنجرة'),
             type: DestinationType.clinic,
             floor: 1,
-            position: Position(x: 50, y: 30),
+            position: Position(x: 88, y: 27),
             roomNumber: '112',
           ),
           Destination(
@@ -192,7 +197,7 @@ final List<Hospital> hospitals = [
             name: LocaleString(en: 'Ophthalmology Clinic', ar: 'عيادة العيون'),
             type: DestinationType.clinic,
             floor: 1,
-            position: Position(x: 70, y: 40),
+            position: Position(x: 88, y: 62),
             roomNumber: '115',
           ),
         ],
@@ -200,14 +205,15 @@ final List<Hospital> hospitals = [
       Floor(
         id: 2,
         name: const LocaleString(en: 'Second Floor', ar: 'الطابق الثاني'),
-        entrance: const Position(x: 20, y: 50),
+        entrance: const Position(x: 7, y: 50),
+        stairsPosition: const Position(x: 52, y: 50),
         destinations: const [
           Destination(
             id: 'surgery-rc-2f',
             name: LocaleString(en: 'Surgery Department', ar: 'قسم الجراحة'),
             type: DestinationType.department,
             floor: 2,
-            position: Position(x: 60, y: 40),
+            position: Position(x: 88, y: 30),
           ),
         ],
       ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 
+/// Notion-style page row — icon chip, title + subtitle, chevron.
+/// Fills available height when wrapped in Expanded.
 class FeatureCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -22,48 +25,63 @@ class FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Notion-style colored chip icon
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: chipBg,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: isAccessible ? 24 : 20,
-                ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Row(
+          children: [
+            // Colored icon chip
+            Container(
+              width: isAccessible ? 48 : 44,
+              height: isAccessible ? 48 : 44,
+              decoration: BoxDecoration(
+                color: chipBg,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
               ),
-              const Spacer(),
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: isAccessible ? 15 : 14,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              child: Icon(
+                icon,
+                color: color,
+                size: isAccessible ? 24 : 22,
               ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(width: 16),
+            // Title + subtitle
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: isAccessible ? 17 : 16,
+                      color: isDark ? Colors.white : const Color(0xFF000000),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: isAccessible ? 13 : 12,
+                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            // Chevron
+            Icon(
+              Icons.chevron_right,
+              size: 22,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ],
         ),
       ),
     );

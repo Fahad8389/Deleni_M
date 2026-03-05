@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../isometric_helper.dart';
 
-class RCFirstFloorPainter extends CustomPainter {
+class RCFirstFloorPainter extends CustomPainter with IsometricHelper {
   final bool darkMode;
   final String locale;
 
@@ -8,11 +9,6 @@ class RCFirstFloorPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    double sx(double pct) => pct / 100 * w;
-    double sy(double pct) => pct / 100 * h;
-
     final bgColor = darkMode ? const Color(0xFF191919) : const Color(0xFFF7F6F3);
     final wallColor = darkMode ? const Color(0xFF4A4A4A) : const Color(0xFFD1D0CC);
     final corridorColor = darkMode ? const Color(0xFF202020) : const Color(0xFFFFFFFF);
@@ -21,60 +17,56 @@ class RCFirstFloorPainter extends CustomPainter {
     final doorColor = darkMode ? const Color(0xFF363636) : const Color(0xFFE3E2DE);
     final clinicFill = darkMode ? const Color(0xFF1E3040) : const Color(0xFFD3E5EF);
 
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), Paint()..color = bgColor);
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = bgColor);
+    paintIsoDotGrid(canvas, size, darkMode);
 
     final wallPaint = Paint()..color = wallColor..style = PaintingStyle.stroke..strokeWidth = 1.5;
     final doorPaint = Paint()..color = doorColor..strokeWidth = 3..strokeCap = StrokeCap.round;
 
-    canvas.drawRect(Rect.fromLTRB(sx(10), sy(18), sx(90), sy(82)), wallPaint);
+    // Building outline
+    drawIsoRoom(canvas, size, left: 3, top: 10, right: 97, bottom: 90,
+      fill: Paint()..color = bgColor, stroke: wallPaint);
 
-    // Corridor
-    canvas.drawRect(Rect.fromLTRB(sx(10), sy(42), sx(90), sy(55)), Paint()..color = corridorColor);
-    canvas.drawLine(Offset(sx(10), sy(42)), Offset(sx(90), sy(42)), wallPaint);
-    canvas.drawLine(Offset(sx(10), sy(55)), Offset(sx(90), sy(55)), wallPaint);
+    // === BACK ROOMS X=80-97 ===
+    drawIsoRoom(canvas, size, left: 80, top: 10, right: 97, bottom: 45,
+      fill: Paint()..color = clinicFill, stroke: wallPaint);
+    drawIsoLine(canvas, size, 80, 22, 80, 35, doorPaint);
 
-    // Entrance
-    canvas.drawRect(Rect.fromLTRB(sx(10), sy(42), sx(28), sy(55)),
-      Paint()..color = (darkMode ? const Color(0xFF1E3040) : const Color(0xFFD3E5EF)));
-    canvas.drawLine(Offset(sx(10), sy(44)), Offset(sx(10), sy(53)),
+    drawIsoRoom(canvas, size, left: 80, top: 45, right: 97, bottom: 80,
+      fill: Paint()..color = clinicFill, stroke: wallPaint);
+    drawIsoLine(canvas, size, 80, 55, 80, 70, doorPaint);
+
+    drawIsoRoom(canvas, size, left: 80, top: 80, right: 97, bottom: 90,
+      fill: Paint()..color = roomFill, stroke: wallPaint);
+
+    // === CORRIDOR X=26-80 ===
+    drawIsoCorridor(canvas, size, left: 26, top: 10, right: 80, bottom: 90,
+      fill: Paint()..color = corridorColor, wallStroke: wallPaint);
+
+    // Stairs
+    paintIsoStairs(canvas, size, 52, 50, wallColor, corridorColor, textColor);
+
+    // === FRONT ROOMS X=10-26 ===
+    drawIsoRoom(canvas, size, left: 10, top: 10, right: 26, bottom: 50,
+      fill: Paint()..color = roomFill, stroke: wallPaint);
+    drawIsoRoom(canvas, size, left: 10, top: 50, right: 26, bottom: 90,
+      fill: Paint()..color = roomFill, stroke: wallPaint);
+
+    // === ENTRANCE X=3-10 ===
+    drawIsoRoom(canvas, size, left: 3, top: 36, right: 10, bottom: 64,
+      fill: Paint()..color = (darkMode ? const Color(0xFF1E3040) : const Color(0xFFD3E5EF)),
+      stroke: wallPaint);
+    drawIsoLine(canvas, size, 3, 40, 3, 60,
       Paint()..color = const Color(0xFF2EAADC)..strokeWidth = 4..strokeCap = StrokeCap.round);
 
-    // ENT Clinic (top-center)
-    canvas.drawRect(Rect.fromLTRB(sx(38), sy(18), sx(62), sy(42)), Paint()..color = clinicFill);
-    canvas.drawRect(Rect.fromLTRB(sx(38), sy(18), sx(62), sy(42)), wallPaint);
-    canvas.drawLine(Offset(sx(46), sy(42)), Offset(sx(54), sy(42)), doorPaint);
-
-    // Ophthalmology Clinic (top-right)
-    canvas.drawRect(Rect.fromLTRB(sx(58), sy(18), sx(82), sy(48)), Paint()..color = clinicFill);
-    canvas.drawRect(Rect.fromLTRB(sx(58), sy(18), sx(82), sy(48)), wallPaint);
-    canvas.drawLine(Offset(sx(66), sy(48)), Offset(sx(74), sy(48)), doorPaint);
-
-    // Fill areas
-    canvas.drawRect(Rect.fromLTRB(sx(10), sy(18), sx(38), sy(42)), Paint()..color = roomFill);
-    canvas.drawRect(Rect.fromLTRB(sx(10), sy(18), sx(38), sy(42)), wallPaint);
-    canvas.drawRect(Rect.fromLTRB(sx(82), sy(18), sx(90), sy(48)), Paint()..color = roomFill);
-    canvas.drawRect(Rect.fromLTRB(sx(82), sy(18), sx(90), sy(48)), wallPaint);
-    canvas.drawRect(Rect.fromLTRB(sx(10), sy(55), sx(50), sy(82)), Paint()..color = roomFill);
-    canvas.drawRect(Rect.fromLTRB(sx(10), sy(55), sx(50), sy(82)), wallPaint);
-    canvas.drawRect(Rect.fromLTRB(sx(50), sy(55), sx(90), sy(82)), Paint()..color = roomFill);
-    canvas.drawRect(Rect.fromLTRB(sx(50), sy(55), sx(90), sy(82)), wallPaint);
-
+    // Labels
     final ts = TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w500);
-    _drawLabel(canvas, locale == 'ar' ? 'أنف وأذن' : 'ENT', Offset(sx(50), sy(28)), ts);
-    _drawLabel(canvas, '112', Offset(sx(50), sy(35)), ts.copyWith(fontSize: 8, color: textColor.withOpacity(0.6)));
-    _drawLabel(canvas, locale == 'ar' ? 'العيون' : 'Ophthalmology', Offset(sx(70), sy(30)), ts);
-    _drawLabel(canvas, '115', Offset(sx(70), sy(38)), ts.copyWith(fontSize: 8, color: textColor.withOpacity(0.6)));
-    _drawLabel(canvas, locale == 'ar' ? 'المدخل' : 'Entrance', Offset(sx(19), sy(48)),
+    drawIsoLabel(canvas, size, locale == 'ar' ? 'أنف وأذن' : 'ENT', 88, 27, ts);
+    drawIsoLabel(canvas, size, '112', 88, 35, ts.copyWith(fontSize: 8, color: textColor.withValues(alpha: 0.6)));
+    drawIsoLabel(canvas, size, locale == 'ar' ? 'العيون' : 'Ophthalmology', 88, 62, ts);
+    drawIsoLabel(canvas, size, '115', 88, 70, ts.copyWith(fontSize: 8, color: textColor.withValues(alpha: 0.6)));
+    drawIsoLabel(canvas, size, locale == 'ar' ? 'المدخل' : 'Entrance', 6, 50,
       ts.copyWith(color: const Color(0xFF2EAADC), fontWeight: FontWeight.w700, fontSize: 9));
-  }
-
-  void _drawLabel(Canvas canvas, String text, Offset center, TextStyle style) {
-    final tp = TextPainter(
-      text: TextSpan(text: text, style: style),
-      textDirection: TextDirection.ltr,
-      textAlign: TextAlign.center,
-    )..layout();
-    tp.paint(canvas, Offset(center.dx - tp.width / 2, center.dy - tp.height / 2));
   }
 
   @override

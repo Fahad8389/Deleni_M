@@ -23,8 +23,25 @@ class AppointmentsScreen extends ConsumerStatefulWidget {
   ConsumerState<AppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
+class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen>
+    with SingleTickerProviderStateMixin {
   Appointment? _navigatingTo;
+  late AnimationController _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseAnim.dispose();
+    super.dispose();
+  }
 
   void _showCreateSheet() {
     showModalBottomSheet(
@@ -134,8 +151,9 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.greenBg,
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                       ),
-                      child: const Icon(Icons.medical_services_outlined, color: AppColors.green, size: 22),
+                      child: const Icon(Icons.local_hospital_outlined, color: AppColors.green, size: 22),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -202,17 +220,24 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkHighlight : AppColors.highlight,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.calendar_month_outlined,
-                    size: isAccessible ? 48 : 40,
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                  ),
+                // Pulsing icon — like emergency screen
+                AnimatedBuilder(
+                  animation: _pulseAnim,
+                  builder: (context, _) {
+                    return Container(
+                      padding: EdgeInsets.all(16 + _pulseAnim.value * 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.greenBg,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
+                      ),
+                      child: Icon(
+                        Icons.event_note_outlined,
+                        size: isAccessible ? 48 : 40,
+                        color: AppColors.green,
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -228,32 +253,96 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: _showCreateSheet,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(l10n.createAppointment),
+                SizedBox(
+                  width: 220,
+                  height: 44,
+                  child: ElevatedButton.icon(
+                    onPressed: _showCreateSheet,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(l10n.createAppointment),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Tip banner
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.greenBg,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, color: AppColors.green, size: 20),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            l10n.appointmentTip,
+                            style: TextStyle(
+                              fontSize: isAccessible ? 13 : 12,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           );
         }
 
-        return GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 0.75,
-          ),
-          itemCount: appointments.length,
-          itemBuilder: (context, i) {
-            return AppointmentCard(
-              appointment: appointments[i],
-              onNavigate: () => _navigateToAppointment(appointments[i]),
-              onDelete: () => ref.read(appointmentProvider.notifier).remove(appointments[i].id),
-            );
-          },
+        return Column(
+          children: [
+            // Tip banner at top
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.greenBg,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: AppColors.green, size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        l10n.appointmentTip,
+                        style: TextStyle(
+                          fontSize: isAccessible ? 12 : 11,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.75,
+                ),
+                itemCount: appointments.length,
+                itemBuilder: (context, i) {
+                  return AppointmentCard(
+                    appointment: appointments[i],
+                    onNavigate: () => _navigateToAppointment(appointments[i]),
+                    onDelete: () => ref.read(appointmentProvider.notifier).remove(appointments[i].id),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );

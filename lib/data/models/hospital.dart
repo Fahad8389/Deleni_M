@@ -44,12 +44,14 @@ class Floor {
   final int id;
   final LocaleString name;
   final Position entrance;
+  final Position stairsPosition;
   final List<Destination> destinations;
 
   const Floor({
     required this.id,
     required this.name,
     required this.entrance,
+    required this.stairsPosition,
     required this.destinations,
   });
 }

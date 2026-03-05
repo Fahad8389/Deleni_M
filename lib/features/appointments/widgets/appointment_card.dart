@@ -96,6 +96,7 @@ class _AppointmentCardState extends ConsumerState<AppointmentCard> {
                     decoration: BoxDecoration(
                       color: AppColors.greenBg,
                       borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF000000), width: 1.75),
                     ),
                     child: Text(
                       _countdown,
@@ -141,7 +142,7 @@ class _AppointmentCardState extends ConsumerState<AppointmentCard> {
               // Date & time
               Row(
                 children: [
-                  Icon(Icons.calendar_today_outlined, size: 12,
+                  Icon(Icons.event_outlined, size: 12,
                       color: Theme.of(context).brightness == Brightness.dark
                           ? AppColors.darkTextSecondary : AppColors.textSecondary),
                   const SizedBox(width: 4),

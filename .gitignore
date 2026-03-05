@@ -43,3 +43,20 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Claude Code
+.claude/
+
+# Environment / secrets
+.env
+*.env
+
+# macOS
+.DS_Store
+
+# Flutter generated
+.flutter-plugins
+*.iml
+
+# Documentation (not needed in repo)
+DELNI_APP_COMPLETE_DOCUMENTATION.md

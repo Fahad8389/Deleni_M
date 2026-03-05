@@ -83,11 +83,12 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                             decoration: BoxDecoration(
                               color: AppColors.redBg.withValues(alpha: 0.6 + _pulseAnim.value * 0.4),
                               borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.emergency_outlined, color: AppColors.red, size: isAccessible ? 18 : 16),
+                                Icon(Icons.local_hospital_outlined, color: AppColors.red, size: isAccessible ? 18 : 16),
                                 const SizedBox(width: 6),
                                 Text(
                                   l10n.emergencyMode,
@@ -122,9 +123,10 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                               decoration: BoxDecoration(
                                 color: AppColors.redBg,
                                 shape: BoxShape.circle,
+                                border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                               ),
                               child: Icon(
-                                Icons.emergency_outlined,
+                                Icons.local_hospital_outlined,
                                 size: isAccessible ? 48 : 40,
                                 color: AppColors.red,
                               ),
@@ -210,8 +212,9 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                               decoration: BoxDecoration(
                                 color: AppColors.redBg,
                                 borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                               ),
-                              child: const Icon(Icons.phone_outlined, color: AppColors.red),
+                              child: const Icon(Icons.phone_in_talk, color: AppColors.red),
                             ),
                             title: Text(l10n.call997, style: TextStyle(fontWeight: FontWeight.w600, fontSize: isAccessible ? 16 : 14)),
                             subtitle: Text(l10n.emergencyContact, style: TextStyle(fontSize: isAccessible ? 13 : 11)),
@@ -258,17 +261,18 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                           decoration: BoxDecoration(
                             color: AppColors.yellowBg,
                             borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.warning_amber_rounded, color: AppColors.yellow, size: 20),
+                              const Icon(Icons.report_problem_outlined, color: AppColors.yellow, size: 20),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   l10n.emergencyWarning,
                                   style: TextStyle(
                                     fontSize: isAccessible ? 13 : 12,
-                                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                               ),
@@ -310,6 +314,7 @@ class _EmergencyScreenState extends ConsumerState<EmergencyScreen>
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),
+                      side: BorderSide(color: isDark ? Colors.white : const Color(0xFF000000), width: 1.75),
                     ),
                   ),
                 ),
@@ -345,6 +350,7 @@ class _InstructionStep extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.redBg,
             borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: const Color(0xFF000000), width: 1.5),
           ),
           child: Text(
             number,

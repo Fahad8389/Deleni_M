@@ -3,8 +3,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/hospital.dart';
+import '../../../shared/painters/isometric_helper.dart';
 
-class NavigationPathPainter extends CustomPainter {
+class NavigationPathPainter extends CustomPainter with IsometricHelper {
   final Position entrance;
   final Position destination;
   final double progress;
@@ -23,26 +24,23 @@ class NavigationPathPainter extends CustomPainter {
     this.darkMode = false,
   });
 
-  Offset _toCanvas(Position p, Size size) =>
-      Offset(p.x / 100 * size.width, p.y / 100 * size.height);
+  Offset _toCanvas(Position p, Size size) => toIso(p.x, p.y, size);
 
+  /// Notion ink color — dark text in light mode, light in dark mode.
+  /// Emergency stays red, accessibility stays yellow.
   Color get _pathColor {
     if (isEmergency) return AppColors.red;
     if (isAccessibility) return AppColors.yellow;
-    return darkMode ? AppColors.darkBlue : AppColors.blue;
+    return darkMode ? const Color(0xFFE3E2E0) : const Color(0xFF37352F);
   }
 
-  double get _lineWidth {
-    if (isEmergency) return 6.0;
-    if (isAccessibility) return 5.5;
-    return 5.0;
-  }
+  double get _lineWidth => 3.0;
 
   List<Position> _buildWaypoints() {
     final pts = <Position>[];
     pts.add(entrance);
 
-    const corridorY = 48.0;
+    const corridorY = 50.0;
 
     final eX = entrance.x;
     final eY = entrance.y;
@@ -109,128 +107,169 @@ class NavigationPathPainter extends CustomPainter {
       remaining -= extract;
     }
 
-    // Subtle shadow
-    final shadowPaint = Paint()
-      ..color = _pathColor.withValues(alpha: 0.15)
-      ..strokeWidth = _lineWidth + 4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawPath(revealedPath, shadowPaint);
+    // Dashed leading edge — draw the last ~15% as dashes during animation
+    if (progress < 1.0) {
+      _paintDashedLeadingEdge(canvas, metrics, totalLength, revealLength);
+      // Draw the solid part (up to the dash start)
+      final solidLength = (revealLength - totalLength * 0.12).clamp(0.0, revealLength);
+      if (solidLength > 0) {
+        final solidPath = Path();
+        double rem = solidLength;
+        for (final metric in metrics) {
+          if (rem <= 0) break;
+          final ext = min(rem, metric.length);
+          solidPath.addPath(metric.extractPath(0, ext), Offset.zero);
+          rem -= ext;
+        }
+        final pathPaint = Paint()
+          ..color = _pathColor
+          ..strokeWidth = _lineWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round;
+        canvas.drawPath(solidPath, pathPaint);
+      }
+    } else {
+      // Fully revealed — solid line, no glow
+      final pathPaint = Paint()
+        ..color = _pathColor
+        ..strokeWidth = _lineWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(revealedPath, pathPaint);
+    }
 
-    // Main path — clean solid line
-    final pathPaint = Paint()
-      ..color = _pathColor
-      ..strokeWidth = _lineWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(revealedPath, pathPaint);
+    // Waypoint dots at turns
+    _paintWaypointDots(canvas, size);
 
-    // Direction arrows
-    _paintArrows(canvas, metrics, totalLength);
-
-    // Entrance marker
+    // Entrance marker — hollow circle with gentle pulse
     _paintEntranceMarker(canvas, size);
 
-    // Destination marker
+    // Destination marker — filled circle with white border
     if (progress >= 1.0) {
       _paintDestinationMarker(canvas, size);
     }
   }
 
-  void _paintArrows(Canvas canvas, List<ui.PathMetric> metrics, double totalLength) {
-    final arrowPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.85)
-      ..strokeWidth = 2.0
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
+  void _paintDashedLeadingEdge(
+    Canvas canvas,
+    List<ui.PathMetric> metrics,
+    double totalLength,
+    double revealLength,
+  ) {
+    final dashStart = (revealLength - totalLength * 0.12).clamp(0.0, revealLength);
+    const dashLength = 6.0;
+    const gapLength = 4.0;
 
-    for (double t = 0.3; t < progress; t += 0.3) {
-      final dist = t * totalLength;
-      _drawArrowAt(canvas, metrics, dist, arrowPaint);
+    final dashPaint = Paint()
+      ..color = _pathColor.withValues(alpha: 0.6)
+      ..strokeWidth = _lineWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    double pos = dashStart;
+    bool drawing = true;
+    while (pos < revealLength) {
+      final segEnd = min(pos + (drawing ? dashLength : gapLength), revealLength);
+      if (drawing) {
+        // Extract this dash segment from the metrics
+        final dashPath = _extractSubPath(metrics, pos, segEnd);
+        if (dashPath != null) {
+          canvas.drawPath(dashPath, dashPaint);
+        }
+      }
+      pos = segEnd;
+      drawing = !drawing;
     }
   }
 
-  void _drawArrowAt(Canvas canvas, List<ui.PathMetric> metrics, double dist, Paint paint) {
+  Path? _extractSubPath(List<ui.PathMetric> metrics, double start, double end) {
+    final path = Path();
     double accumulated = 0;
     for (final metric in metrics) {
-      if (accumulated + metric.length >= dist) {
-        final localDist = dist - accumulated;
-        final tangent = metric.getTangentForOffset(localDist);
-        if (tangent == null) return;
-
-        final pos = tangent.position;
-        final angle = tangent.angle;
-        const arrowSize = 5.0;
-
-        final p1 = Offset(
-          pos.dx - arrowSize * cos(angle - 0.5),
-          pos.dy - arrowSize * sin(angle - 0.5),
-        );
-        final p2 = Offset(
-          pos.dx - arrowSize * cos(angle + 0.5),
-          pos.dy - arrowSize * sin(angle + 0.5),
-        );
-
-        canvas.drawLine(p1, pos, paint);
-        canvas.drawLine(p2, pos, paint);
-        return;
+      final metricEnd = accumulated + metric.length;
+      if (metricEnd <= start) {
+        accumulated = metricEnd;
+        continue;
       }
-      accumulated += metric.length;
+      if (accumulated >= end) break;
+
+      final localStart = (start - accumulated).clamp(0.0, metric.length);
+      final localEnd = (end - accumulated).clamp(0.0, metric.length);
+      if (localEnd > localStart) {
+        path.addPath(metric.extractPath(localStart, localEnd), Offset.zero);
+      }
+      accumulated = metricEnd;
+    }
+    return path;
+  }
+
+  void _paintWaypointDots(Canvas canvas, Size size) {
+    final waypoints = _buildWaypoints();
+    if (waypoints.length <= 2) return;
+
+    final dotPaint = Paint()..color = _pathColor;
+
+    // Draw small dots at intermediate waypoints (not entrance/destination)
+    for (int i = 1; i < waypoints.length - 1; i++) {
+      final pt = _toCanvas(waypoints[i], size);
+      canvas.drawCircle(pt, 3.0, dotPaint);
     }
   }
 
   void _paintEntranceMarker(Canvas canvas, Size size) {
     final center = _toCanvas(entrance, size);
-    final pulse = 0.8 + 0.5 * sin(pulseValue * 2 * pi);
-    final radius = 8.0 * pulse;
-    final markerColor = darkMode ? AppColors.darkBlue : AppColors.blue;
+    final pulse = 0.8 + 0.4 * sin(pulseValue * 2 * pi);
+    final inkColor = darkMode ? const Color(0xFFE3E2E0) : const Color(0xFF37352F);
 
-    // Pulsing ring
+    // Gentle pulsing ring
     canvas.drawCircle(
       center,
-      radius + 3,
+      8.0 * pulse,
       Paint()
-        ..color = markerColor.withValues(alpha: 0.2 * (1.2 - pulse / 1.4))
+        ..color = inkColor.withValues(alpha: 0.15)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+
+    // Hollow circle
+    canvas.drawCircle(
+      center,
+      5,
+      Paint()
+        ..color = inkColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );
-
-    // Solid center
-    canvas.drawCircle(center, 7, Paint()..color = markerColor);
-    // White inner dot
-    canvas.drawCircle(center, 3, Paint()..color = Colors.white);
   }
 
   void _paintDestinationMarker(Canvas canvas, Size size) {
     final center = _toCanvas(destination, size);
     final color = _pathColor;
 
-    // Pin body
-    canvas.drawCircle(center, 9, Paint()..color = color);
+    // Filled circle
+    canvas.drawCircle(center, 7, Paint()..color = color);
 
     // White border
     canvas.drawCircle(
       center,
-      9,
+      7,
       Paint()
-        ..color = Colors.white
+        ..color = darkMode ? const Color(0xFF191919) : Colors.white
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
+        ..strokeWidth = 2.5,
     );
 
-    // Inner dot
-    canvas.drawCircle(center, 3.5, Paint()..color = Colors.white);
-
-    // Pin pointer
-    final pinPath = Path()
-      ..moveTo(center.dx - 4, center.dy + 7)
-      ..lineTo(center.dx, center.dy + 14)
-      ..lineTo(center.dx + 4, center.dy + 7)
-      ..close();
-    canvas.drawPath(pinPath, Paint()..color = color);
+    // Outer ring for visibility
+    canvas.drawCircle(
+      center,
+      9.5,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
   }
 
   @override
