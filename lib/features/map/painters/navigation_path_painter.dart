@@ -14,6 +14,16 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
   final bool isAccessibility;
   final bool darkMode;
 
+  /// When true, coordinates map directly to image pixels (X=left/right%, Y=top/bottom%)
+  /// instead of isometric projection.
+  final bool flatMode;
+
+  /// Corridor bounds for path routing (percentage 0-100).
+  final double? corridorLeft;
+  final double? corridorTop;
+  final double? corridorRight;
+  final double? corridorBottom;
+
   NavigationPathPainter({
     required this.entrance,
     required this.destination,
@@ -22,12 +32,23 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
     this.isEmergency = false,
     this.isAccessibility = false,
     this.darkMode = false,
+    this.flatMode = false,
+    this.corridorLeft,
+    this.corridorTop,
+    this.corridorRight,
+    this.corridorBottom,
   });
 
-  Offset _toCanvas(Position p, Size size) => toIso(p.x, p.y, size);
+  Offset _toCanvas(Position p, Size size) {
+    if (flatMode) {
+      return Offset(
+        (p.x / 100.0) * size.width,
+        (p.y / 100.0) * size.height,
+      );
+    }
+    return toIso(p.x, p.y, size);
+  }
 
-  /// Notion ink color — dark text in light mode, light in dark mode.
-  /// Emergency stays red, accessibility stays yellow.
   Color get _pathColor {
     if (isEmergency) return AppColors.red;
     if (isAccessibility) return AppColors.yellow;
@@ -40,30 +61,81 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
     final pts = <Position>[];
     pts.add(entrance);
 
-    const corridorY = 50.0;
-
     final eX = entrance.x;
     final eY = entrance.y;
     final dX = destination.x;
     final dY = destination.y;
 
+    // If very close, just go direct
     if ((eY - dY).abs() < 8 && (eX - dX).abs() < 8) {
       pts.add(destination);
       return pts;
     }
 
-    if ((eY - corridorY).abs() > 5) {
-      pts.add(Position(x: eX, y: corridorY));
+    if (flatMode) {
+      // Flat mode: X=horizontal (left/right), Y=vertical (top/bottom)
+      final cLeft = corridorLeft ?? 20.0;
+      final cRight = corridorRight ?? 80.0;
+      final cTop = corridorTop ?? 40.0;
+      final cBottom = corridorBottom ?? 60.0;
+      final corridorCenterY = (cTop + cBottom) / 2;
+
+      // Step 1: Move vertically to corridor center
+      if ((eY - corridorCenterY).abs() > 5) {
+        pts.add(Position(x: eX, y: corridorCenterY));
+      }
+
+      // Step 2: Move horizontally into corridor X range
+      final enterX = eX.clamp(cLeft, cRight);
+      if ((eX - enterX).abs() > 3) {
+        pts.add(Position(x: enterX, y: corridorCenterY));
+      }
+
+      // Step 3: Walk along corridor to destination's X
+      final exitX = dX.clamp(cLeft, cRight);
+      if ((enterX - exitX).abs() > 5) {
+        pts.add(Position(x: exitX, y: corridorCenterY));
+      }
+
+      // Step 4: Move vertically from corridor to destination Y
+      if ((corridorCenterY - dY).abs() > 5) {
+        pts.add(Position(x: exitX, y: dY));
+      }
+
+      // Step 5: Move horizontally to final destination X
+      if ((exitX - dX).abs() > 3) {
+        pts.add(Position(x: dX, y: dY));
+      }
+    } else {
+      // Isometric mode: X=depth, Y=lateral
+      const corridorY = 50.0;
+      final corridorMinX = corridorLeft ?? 24.0;
+      final corridorMaxX = corridorRight ?? 82.0;
+
+      final enterCorridorX = eX.clamp(corridorMinX, corridorMaxX);
+      if ((eX - enterCorridorX).abs() > 3) {
+        pts.add(Position(x: enterCorridorX, y: eY));
+      }
+
+      if ((eY - corridorY).abs() > 5) {
+        pts.add(Position(x: enterCorridorX, y: corridorY));
+      }
+
+      final exitCorridorX = dX.clamp(corridorMinX, corridorMaxX);
+      if ((enterCorridorX - exitCorridorX).abs() > 5) {
+        pts.add(Position(x: exitCorridorX, y: corridorY));
+      }
+
+      if ((corridorY - dY).abs() > 5) {
+        pts.add(Position(x: exitCorridorX, y: dY));
+      }
+
+      if ((exitCorridorX - dX).abs() > 3) {
+        pts.add(Position(x: dX, y: dY));
+      }
     }
 
-    if ((eX - dX).abs() > 5) {
-      pts.add(Position(x: dX, y: corridorY));
-    }
-
-    if ((corridorY - dY).abs() > 5) {
-      pts.add(Position(x: dX, y: dY));
-    }
-
+    // Make sure we end at destination
     if (pts.last.x != dX || pts.last.y != dY) {
       pts.add(destination);
     }
@@ -107,10 +179,8 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
       remaining -= extract;
     }
 
-    // Dashed leading edge — draw the last ~15% as dashes during animation
     if (progress < 1.0) {
       _paintDashedLeadingEdge(canvas, metrics, totalLength, revealLength);
-      // Draw the solid part (up to the dash start)
       final solidLength = (revealLength - totalLength * 0.12).clamp(0.0, revealLength);
       if (solidLength > 0) {
         final solidPath = Path();
@@ -130,7 +200,6 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
         canvas.drawPath(solidPath, pathPaint);
       }
     } else {
-      // Fully revealed — solid line, no glow
       final pathPaint = Paint()
         ..color = _pathColor
         ..strokeWidth = _lineWidth
@@ -140,13 +209,9 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
       canvas.drawPath(revealedPath, pathPaint);
     }
 
-    // Waypoint dots at turns
     _paintWaypointDots(canvas, size);
-
-    // Entrance marker — hollow circle with gentle pulse
     _paintEntranceMarker(canvas, size);
 
-    // Destination marker — filled circle with white border
     if (progress >= 1.0) {
       _paintDestinationMarker(canvas, size);
     }
@@ -173,7 +238,6 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
     while (pos < revealLength) {
       final segEnd = min(pos + (drawing ? dashLength : gapLength), revealLength);
       if (drawing) {
-        // Extract this dash segment from the metrics
         final dashPath = _extractSubPath(metrics, pos, segEnd);
         if (dashPath != null) {
           canvas.drawPath(dashPath, dashPaint);
@@ -211,7 +275,6 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
 
     final dotPaint = Paint()..color = _pathColor;
 
-    // Draw small dots at intermediate waypoints (not entrance/destination)
     for (int i = 1; i < waypoints.length - 1; i++) {
       final pt = _toCanvas(waypoints[i], size);
       canvas.drawCircle(pt, 3.0, dotPaint);
@@ -223,7 +286,6 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
     final pulse = 0.8 + 0.4 * sin(pulseValue * 2 * pi);
     final inkColor = darkMode ? const Color(0xFFE3E2E0) : const Color(0xFF37352F);
 
-    // Gentle pulsing ring
     canvas.drawCircle(
       center,
       8.0 * pulse,
@@ -233,7 +295,6 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
         ..strokeWidth = 1.5,
     );
 
-    // Hollow circle
     canvas.drawCircle(
       center,
       5,
@@ -248,10 +309,8 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
     final center = _toCanvas(destination, size);
     final color = _pathColor;
 
-    // Filled circle
     canvas.drawCircle(center, 7, Paint()..color = color);
 
-    // White border
     canvas.drawCircle(
       center,
       7,
@@ -261,7 +320,6 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
         ..strokeWidth = 2.5,
     );
 
-    // Outer ring for visibility
     canvas.drawCircle(
       center,
       9.5,
@@ -282,6 +340,7 @@ class NavigationPathPainter extends CustomPainter with IsometricHelper {
         oldDelegate.destination.y != destination.y ||
         oldDelegate.isEmergency != isEmergency ||
         oldDelegate.isAccessibility != isAccessibility ||
-        oldDelegate.darkMode != darkMode;
+        oldDelegate.darkMode != darkMode ||
+        oldDelegate.flatMode != flatMode;
   }
 }

@@ -21,13 +21,15 @@ class GeneratedHospitalsNotifier
   @override
   Future<List<GeneratedHospital>> build() async {
     final repo = ref.read(generatedHospitalRepoProvider);
+    // Clear any previously generated hospitals on startup — keep only default 2
+    await repo.clearAll();
     final hospitals = await repo.getAll();
 
     // Register floor plans with the painter factory
     clearGeneratedFloorPlans();
     for (final h in hospitals) {
       for (final f in h.floors) {
-        registerGeneratedFloorPlan(h.id, f.id, f.floorPlan);
+        registerGeneratedFloorPlan(h.id, f.id, f.floorPlan, imageBase64: f.imageBase64);
       }
     }
 

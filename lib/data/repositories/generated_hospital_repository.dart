@@ -27,4 +27,9 @@ class GeneratedHospitalRepository {
     final box = await _getBox();
     await box.delete(id);
   }
+
+  Future<void> clearAll() async {
+    final box = await _getBox();
+    await box.clear();
+  }
 }

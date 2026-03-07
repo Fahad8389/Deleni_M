@@ -341,52 +341,95 @@ String _buildPrompt(String hospitalName, String floorName, int floorIndex, int t
   return '''
 Analyze this hospital floor plan image for "$hospitalName" - "$floorName".
 
-Extract all visible rooms, corridors, entrances, stairs/elevators. Map everything to a percentage-based coordinate system (0-100 for both X and Y), where:
-- X axis represents depth (0 = near entrance/viewer, 100 = far end)
-- Y axis represents lateral position (0 = left, 100 = right)
+Our app renders maps in isometric perspective. Your job: look at the image, trace the building shape, and place SMALL rooms along the walls — exactly like copying the floor plan layout into our drawing style.
 
-IMPORTANT LAYOUT RULES for our rendering system:
-- Rooms should be NARROW in X (14-17 units wide) so they appear square on portrait screens
-- Corridor should be WIDE in X (typically from X=24 to X=82)
-- Back rooms (far from entrance) at high X values (X=80-97)
-- Front rooms (near entrance) at low X values (X=8-24)
-- Building outline typically: left:3, top:8, right:97, bottom:92
-- Entrance position near low X (around x:7, y:50)
-- Stairs/elevator near center of corridor (around x:52, y:50)
+## COORDINATE SYSTEM
+- X axis = depth: 0 = entrance (bottom of isometric view), 100 = far end (top)
+- Y axis = lateral: 0 = left, 100 = right
+- All values are percentages (0-100)
 
-Return this exact JSON structure:
+## STEP 1: TRACE THE BUILDING SHAPE
+Look at the building outline in the image. Is it rectangular or irregular?
+
+**Rectangular building:** Use building_outline { left:3, top:8, right:97, bottom:92 }
+
+**Irregular building (L-shape, T-shape, U-shape, wings):** Provide "building_outline_points" — a clockwise polygon [[x1,y1], [x2,y2], ...] that traces the actual perimeter. Example for an L-shaped building:
+  [[5,8], [5,55], [50,55], [50,92], [97,92], [97,8]]
+Keep it to 6-10 vertices. This polygon IS the building — rooms go INSIDE it.
+
+## STEP 2: CORRIDOR
+The corridor is the main hallway running through the building spine.
+- For rectangular buildings: typically { left:24, top:8, right:82, bottom:92 }
+- For irregular buildings: the corridor follows the longest internal path
+
+## STEP 3: PLACE ROOMS — SMALL BOXES ALONG THE WALLS
+Rooms are SMALL rectangles placed along the outer walls of the building, with doors facing the corridor. Think of rooms as shelves lining the walls.
+
+**CRITICAL SIZE RULES:**
+- Each room must be EXACTLY 15 units wide and 25-28 units tall (or vice versa)
+- Rooms line the OUTER WALLS, not floating in the middle
+- Leave the corridor CENTER empty (that's where people walk)
+- Rooms must NOT overlap — leave 2-4 unit gaps between them
+- Maximum 6-8 rooms
+
+**For rectangular buildings, rooms go in 2 rows:**
+- LEFT wall rooms: X from 8 to 23 (15 wide), stacked vertically (Y: 8-35, 38-65, 68-92)
+- RIGHT wall rooms: X from 82 to 97 (15 wide), stacked vertically (Y: 8-35, 38-65, 68-92)
+- 1-2 rooms can sit INSIDE corridor (like reception desk or pharmacy)
+
+**For irregular buildings (L/T/U shape), rooms line ALL wings:**
+- Place rooms along each wing's outer walls
+- Each wing gets 1-3 rooms depending on wing length
+- Rooms face INWARD toward the corridor
+
+## STEP 4: ENTRANCE & STAIRS
+- entrance: at the main door (low X = near entrance side)
+- stairs: where elevators/stairs are shown, or center of corridor
+
+## ROOM PROPERTIES
+- door_wall: wall facing corridor ("left"/"right"/"top"/"bottom")
+- door_start/door_end: 30/70 (always centered)
+- position_x/position_y: center of the room box
+- name max 14 chars. Use "Cardiology" not "Cardiology Department"
+- fill_type: "clinic" (blue), "emergency" (red), "normal" (white)
+- type: "clinic", "department", "room", or "emergency"
+
+## EXAMPLE — rectangular building (our handcrafted style):
 {
-  "building_outline": { "left": 3, "top": 8, "right": 97, "bottom": 92 },
-  "corridor": { "left": 24, "top": 8, "right": 82, "bottom": 92 },
-  "entrance": { "x": 7, "y": 50 },
-  "stairs": { "x": 52, "y": 50 },
+  "building_outline": {"left":3,"top":8,"right":97,"bottom":92},
+  "corridor": {"left":24,"top":8,"right":82,"bottom":92},
+  "entrance": {"x":7,"y":50},
+  "stairs": {"x":52,"y":50},
   "rooms": [
-    {
-      "id": "unique-slug",
-      "name_en": "Room Name in English",
-      "name_ar": "اسم الغرفة بالعربية",
-      "type": "clinic",
-      "left": 82, "top": 8, "right": 97, "bottom": 36,
-      "door_wall": "left",
-      "door_start": 30, "door_end": 70,
-      "position_x": 90, "position_y": 22,
-      "room_number": "105",
-      "fill_type": "clinic"
-    }
+    {"id":"emergency-gf","name_en":"Emergency","name_ar":"الطوارئ","type":"emergency","left":82,"top":36,"right":97,"bottom":64,"door_wall":"left","door_start":30,"door_end":70,"position_x":90,"position_y":50,"room_number":null,"fill_type":"emergency"},
+    {"id":"radiology-gf","name_en":"Radiology","name_ar":"الأشعة","type":"department","left":82,"top":8,"right":97,"bottom":36,"door_wall":"left","door_start":30,"door_end":70,"position_x":90,"position_y":22,"room_number":null,"fill_type":"clinic"},
+    {"id":"pharmacy-gf","name_en":"Pharmacy","name_ar":"الصيدلية","type":"department","left":60,"top":64,"right":82,"bottom":85,"door_wall":"left","door_start":30,"door_end":70,"position_x":71,"position_y":75,"room_number":null,"fill_type":"normal"},
+    {"id":"reception-gf","name_en":"Reception","name_ar":"الاستقبال","type":"department","left":24,"top":36,"right":40,"bottom":64,"door_wall":"right","door_start":30,"door_end":70,"position_x":32,"position_y":50,"room_number":null,"fill_type":"normal"},
+    {"id":"clinic-gf","name_en":"Gen. Clinic","name_ar":"العيادة","type":"clinic","left":8,"top":8,"right":24,"bottom":36,"door_wall":"right","door_start":30,"door_end":70,"position_x":16,"position_y":22,"room_number":null,"fill_type":"clinic"},
+    {"id":"room-101","name_en":"Room 101","name_ar":"غرفة ١٠١","type":"room","left":8,"top":40,"right":24,"bottom":68,"door_wall":"right","door_start":30,"door_end":70,"position_x":16,"position_y":54,"room_number":"101","fill_type":"normal"}
   ]
 }
 
-Rules:
-- type: one of "clinic", "department", "room", "emergency"
-- fill_type: "clinic" (blue tint), "emergency" (red tint), "normal" (white/default)
-- position_x/position_y = center of room, used for navigation destination marker
-- door_wall: which wall has the door ("left", "right", "top", "bottom")
-- door_start/door_end: percentage along that wall for door opening (e.g., 30 to 70 = middle 40%)
-- Provide Arabic translations for all room names using standard medical Arabic
-- If total_floors is 1, set stairs to same position as entrance
-- Generate unique slug IDs like "emergency-gf", "cardiology-1f", "room-201"
-- room_number: include if visible in the image, otherwise null
-- Arrange rooms so they don't overlap
-- Total floors for this hospital: $totalFloors (this is floor ${floorIndex + 1} of $totalFloors)
+## EXAMPLE — L-shaped building:
+{
+  "building_outline": {"left":3,"top":8,"right":97,"bottom":92},
+  "building_outline_points": [[5,8],[5,55],[50,55],[50,92],[97,92],[97,8]],
+  "corridor": {"left":24,"top":8,"right":75,"bottom":55},
+  "entrance": {"x":7,"y":30},
+  "stairs": {"x":50,"y":75},
+  "rooms": [
+    {"id":"emergency-gf","name_en":"Emergency","name_ar":"الطوارئ","type":"emergency","left":82,"top":8,"right":97,"bottom":35,"door_wall":"left","door_start":30,"door_end":70,"position_x":90,"position_y":22,"room_number":null,"fill_type":"emergency"},
+    {"id":"pharmacy-gf","name_en":"Pharmacy","name_ar":"الصيدلية","type":"department","left":82,"top":38,"right":97,"bottom":55,"door_wall":"left","door_start":30,"door_end":70,"position_x":90,"position_y":47,"room_number":null,"fill_type":"normal"},
+    {"id":"clinic-gf","name_en":"Gen. Clinic","name_ar":"العيادة","type":"clinic","left":8,"top":8,"right":23,"bottom":35,"door_wall":"right","door_start":30,"door_end":70,"position_x":16,"position_y":22,"room_number":null,"fill_type":"clinic"},
+    {"id":"radiology-gf","name_en":"Radiology","name_ar":"الأشعة","type":"department","left":8,"top":38,"right":23,"bottom":55,"door_wall":"right","door_start":30,"door_end":70,"position_x":16,"position_y":47,"room_number":null,"fill_type":"clinic"},
+    {"id":"lab-gf","name_en":"Laboratory","name_ar":"المختبر","type":"department","left":50,"top":58,"right":65,"bottom":85,"door_wall":"right","door_start":30,"door_end":70,"position_x":58,"position_y":72,"room_number":null,"fill_type":"normal"},
+    {"id":"reception-gf","name_en":"Reception","name_ar":"الاستقبال","type":"department","left":75,"top":58,"right":97,"bottom":85,"door_wall":"left","door_start":30,"door_end":70,"position_x":86,"position_y":72,"room_number":null,"fill_type":"normal"}
+  ]
+}
+
+Return ONLY the JSON. No markdown fences, no explanation.
+- Arabic: standard Saudi medical Arabic
+- ID suffix: "-gf" ground, "-1f" first, "-2f" second
+- Total floors: $totalFloors (this is floor ${floorIndex + 1})
 ''';
 }

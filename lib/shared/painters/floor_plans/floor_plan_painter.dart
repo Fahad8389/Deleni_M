@@ -11,12 +11,29 @@ import 'rc_second.dart';
 /// Registry of AI-generated floor plans.
 final Map<String, GeneratedFloorPlan> _generatedFloorPlans = {};
 
-void registerGeneratedFloorPlan(String hospitalId, int floorId, GeneratedFloorPlan plan) {
+/// Registry of floor plan images (base64).
+final Map<String, String> _floorPlanImages = {};
+
+void registerGeneratedFloorPlan(String hospitalId, int floorId, GeneratedFloorPlan plan, {String? imageBase64}) {
   _generatedFloorPlans['${hospitalId}_$floorId'] = plan;
+  if (imageBase64 != null) {
+    _floorPlanImages['${hospitalId}_$floorId'] = imageBase64;
+  }
 }
 
 void clearGeneratedFloorPlans() {
   _generatedFloorPlans.clear();
+  _floorPlanImages.clear();
+}
+
+/// Get the uploaded floor plan image (base64) for a hospital+floor, or null.
+String? getFloorPlanImage(String hospitalId, int floorId) {
+  return _floorPlanImages['${hospitalId}_$floorId'];
+}
+
+/// Get the generated floor plan data for a hospital+floor, or null.
+GeneratedFloorPlan? getGeneratedFloorPlanData(String hospitalId, int floorId) {
+  return _generatedFloorPlans['${hospitalId}_$floorId'];
 }
 
 CustomPainter getFloorPlanPainter({

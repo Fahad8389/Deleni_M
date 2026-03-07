@@ -13,6 +13,8 @@ class GeneratedFloorPlanPainter extends CustomPainter with IsometricHelper {
     this.locale = 'en',
   });
 
+  bool get _hasPolygon => floorPlan.outlinePoints.length >= 3;
+
   @override
   void paint(Canvas canvas, Size size) {
     final bgColor = darkMode ? const Color(0xFF191919) : const Color(0xFFF7F6F3);
@@ -41,23 +43,21 @@ class GeneratedFloorPlanPainter extends CustomPainter with IsometricHelper {
     );
     paintIsoDotGrid(canvas, size, darkMode);
 
-    // 2. Building outline
-    drawIsoRoom(canvas, size,
-      left: floorPlan.buildingLeft,
-      top: floorPlan.buildingTop,
-      right: floorPlan.buildingRight,
-      bottom: floorPlan.buildingBottom,
-      fill: Paint()..color = bgColor,
-      stroke: wallPaint,
-    );
-
-    // 3. Back rooms (high X = far from viewer, drawn first)
-    for (final room in floorPlan.rooms.where((r) => r.left >= floorPlan.corridorRight)) {
-      _drawRoom(canvas, size, room, wallPaint, doorPaint, textColor,
-        roomFill, clinicFill, erColor, entranceColor);
+    // 2. Building outline — polygon or rectangle
+    if (_hasPolygon) {
+      _drawPolygonOutline(canvas, size, bgColor, wallPaint);
+    } else {
+      drawIsoRoom(canvas, size,
+        left: floorPlan.buildingLeft,
+        top: floorPlan.buildingTop,
+        right: floorPlan.buildingRight,
+        bottom: floorPlan.buildingBottom,
+        fill: Paint()..color = bgColor,
+        stroke: wallPaint,
+      );
     }
 
-    // 4. Corridor
+    // 3. Corridor fill (always draw — shows walkable area)
     drawIsoCorridor(canvas, size,
       left: floorPlan.corridorLeft,
       top: floorPlan.corridorTop,
@@ -67,24 +67,21 @@ class GeneratedFloorPlanPainter extends CustomPainter with IsometricHelper {
       wallStroke: wallPaint,
     );
 
+    // 4. Draw all rooms sorted by X (far rooms first, near rooms last)
+    final sortedRooms = List.of(floorPlan.rooms)
+      ..sort((a, b) => b.left.compareTo(a.left));
+
     // 5. Stairs
     paintIsoStairs(canvas, size, floorPlan.stairsX, floorPlan.stairsY,
       wallColor, corridorColor, textColor);
 
-    // 6. Rooms inside corridor
-    for (final room in floorPlan.rooms.where((r) =>
-        r.left >= floorPlan.corridorLeft && r.left < floorPlan.corridorRight)) {
+    // 6. All rooms
+    for (final room in sortedRooms) {
       _drawRoom(canvas, size, room, wallPaint, doorPaint, textColor,
-        roomFill, clinicFill, erColor, entranceColor);
+        roomFill, clinicFill, erColor);
     }
 
-    // 7. Front rooms (low X = near viewer, drawn last)
-    for (final room in floorPlan.rooms.where((r) => r.left < floorPlan.corridorLeft)) {
-      _drawRoom(canvas, size, room, wallPaint, doorPaint, textColor,
-        roomFill, clinicFill, erColor, entranceColor);
-    }
-
-    // 8. Entrance area
+    // 7. Entrance area
     drawIsoRoom(canvas, size,
       left: floorPlan.entranceX - 3,
       top: floorPlan.entranceY - 14,
@@ -102,13 +99,34 @@ class GeneratedFloorPlanPainter extends CustomPainter with IsometricHelper {
         ..strokeCap = StrokeCap.round,
     );
 
-    // 9. Entrance label
+    // 8. Entrance label
     final ts = TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w500);
     drawIsoLabel(canvas, size,
       locale == 'ar' ? 'المدخل' : 'Entrance',
       floorPlan.entranceX, floorPlan.entranceY,
       ts.copyWith(color: const Color(0xFF2EAADC), fontWeight: FontWeight.w700, fontSize: 9),
     );
+  }
+
+  /// Draw the building outline as an isometric polygon.
+  void _drawPolygonOutline(Canvas canvas, Size size, Color bgColor, Paint wallPaint) {
+    final points = floorPlan.outlinePoints;
+    if (points.length < 3) return;
+
+    final path = Path();
+    final first = toIso(points[0][0], points[0][1], size);
+    path.moveTo(first.dx, first.dy);
+
+    for (int i = 1; i < points.length; i++) {
+      final pt = toIso(points[i][0], points[i][1], size);
+      path.lineTo(pt.dx, pt.dy);
+    }
+    path.close();
+
+    // Fill
+    canvas.drawPath(path, Paint()..color = bgColor);
+    // Stroke
+    canvas.drawPath(path, wallPaint);
   }
 
   void _drawRoom(
@@ -121,12 +139,10 @@ class GeneratedFloorPlanPainter extends CustomPainter with IsometricHelper {
     Color roomFill,
     Color clinicFill,
     Color erColor,
-    Color entranceColor,
   ) {
     final fill = switch (room.fillType) {
       'clinic' => clinicFill,
       'emergency' => erColor,
-      'entrance' => entranceColor,
       _ => roomFill,
     };
 
@@ -136,11 +152,11 @@ class GeneratedFloorPlanPainter extends CustomPainter with IsometricHelper {
       fill: Paint()..color = fill, stroke: wallPaint,
     );
 
-    // Door
     _drawDoor(canvas, size, room, doorPaint);
 
-    // Label
-    final label = locale == 'ar' ? room.nameAr : room.nameEn;
+    // Label — truncate to fit
+    final rawLabel = locale == 'ar' ? room.nameAr : room.nameEn;
+    final label = rawLabel.length > 14 ? '${rawLabel.substring(0, 12)}…' : rawLabel;
     final ts = TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.w500);
 
     if (room.type == 'emergency') {
@@ -150,7 +166,6 @@ class GeneratedFloorPlanPainter extends CustomPainter with IsometricHelper {
       drawIsoLabel(canvas, size, label, room.positionX, room.positionY, ts);
     }
 
-    // Room number
     if (room.roomNumber != null) {
       drawIsoLabel(canvas, size, room.roomNumber!, room.positionX, room.positionY + 8,
         ts.copyWith(fontSize: 8, color: textColor.withValues(alpha: 0.6)));

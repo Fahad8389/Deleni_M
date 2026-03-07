@@ -310,14 +310,7 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
     return Stack(
       children: [
         Positioned.fill(
-          child: CustomPaint(
-            painter: getFloorPlanPainter(
-              hospitalId: hospital.id,
-              floorId: currentFloorId,
-              darkMode: settings.darkMode,
-              locale: settings.language,
-            ),
-          ),
+          child: _buildFloorBackground(hospital.id, currentFloorId, settings),
         ),
         if (showPath)
           Positioned.fill(
@@ -341,6 +334,19 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
         if (showPath && _pathController.value >= 1.0)
           _buildRouteInfo(floor, dest, settings),
       ],
+    );
+  }
+
+  /// Always render floor plan using CustomPaint (isometric style).
+  /// Uploaded images are only used for AI analysis, not display.
+  Widget _buildFloorBackground(String hospitalId, int floorId, SettingsState settings) {
+    return CustomPaint(
+      painter: getFloorPlanPainter(
+        hospitalId: hospitalId,
+        floorId: floorId,
+        darkMode: settings.darkMode,
+        locale: settings.language,
+      ),
     );
   }
 
@@ -430,14 +436,7 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
     return Stack(
       children: [
         Positioned.fill(
-          child: CustomPaint(
-            painter: getFloorPlanPainter(
-              hospitalId: hospital.id,
-              floorId: floorId,
-              darkMode: settings.darkMode,
-              locale: settings.language,
-            ),
-          ),
+          child: _buildFloorBackground(hospital.id, floorId, settings),
         ),
         if (drawPath)
           Positioned.fill(
@@ -504,14 +503,7 @@ class _NavigationMapWidgetState extends ConsumerState<NavigationMapWidget>
     SettingsState settings,
     int floorId,
   ) {
-    return CustomPaint(
-      painter: getFloorPlanPainter(
-        hospitalId: hospital.id,
-        floorId: floorId,
-        darkMode: settings.darkMode,
-        locale: settings.language,
-      ),
-    );
+    return _buildFloorBackground(hospital.id, floorId, settings);
   }
 
   /// Build the "Elevator" label overlay at the stairs position.

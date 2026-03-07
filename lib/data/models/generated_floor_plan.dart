@@ -87,6 +87,10 @@ class GeneratedFloorPlan {
   final double stairsX, stairsY;
   final List<GeneratedRoom> rooms;
 
+  /// Polygon outline points [[x1,y1], [x2,y2], ...] for irregular building shapes.
+  /// If empty, falls back to the rectangular building outline.
+  final List<List<double>> outlinePoints;
+
   const GeneratedFloorPlan({
     required this.buildingLeft,
     required this.buildingTop,
@@ -101,6 +105,7 @@ class GeneratedFloorPlan {
     required this.stairsX,
     required this.stairsY,
     required this.rooms,
+    this.outlinePoints = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -108,6 +113,7 @@ class GeneratedFloorPlan {
       'left': buildingLeft, 'top': buildingTop,
       'right': buildingRight, 'bottom': buildingBottom,
     },
+    if (outlinePoints.isNotEmpty) 'building_outline_points': outlinePoints,
     'corridor': {
       'left': corridorLeft, 'top': corridorTop,
       'right': corridorRight, 'bottom': corridorBottom,
@@ -126,6 +132,11 @@ class GeneratedFloorPlan {
         .map((r) => GeneratedRoom.fromJson(r as Map<String, dynamic>))
         .toList();
 
+    final rawPoints = json['building_outline_points'] as List?;
+    final outlinePoints = rawPoints != null
+        ? rawPoints.map((p) => (p as List).map((v) => (v as num).toDouble()).toList()).toList()
+        : <List<double>>[];
+
     return GeneratedFloorPlan(
       buildingLeft: (outline['left'] as num).toDouble(),
       buildingTop: (outline['top'] as num).toDouble(),
@@ -140,6 +151,7 @@ class GeneratedFloorPlan {
       stairsX: (stairs['x'] as num).toDouble(),
       stairsY: (stairs['y'] as num).toDouble(),
       rooms: roomsList,
+      outlinePoints: outlinePoints,
     );
   }
 
@@ -166,12 +178,14 @@ class GeneratedFloorData {
   final String nameEn;
   final String nameAr;
   final GeneratedFloorPlan floorPlan;
+  final String? imageBase64; // Original uploaded floor plan image
 
   const GeneratedFloorData({
     required this.id,
     required this.nameEn,
     required this.nameAr,
     required this.floorPlan,
+    this.imageBase64,
   });
 
   Floor toFloor() => floorPlan.toFloor(id, nameEn, nameAr);
@@ -181,6 +195,7 @@ class GeneratedFloorData {
     'name_en': nameEn,
     'name_ar': nameAr,
     'floor_plan': floorPlan.toJson(),
+    if (imageBase64 != null) 'image_base64': imageBase64,
   };
 
   factory GeneratedFloorData.fromJson(Map<String, dynamic> json) => GeneratedFloorData(
@@ -188,6 +203,7 @@ class GeneratedFloorData {
     nameEn: json['name_en'] as String,
     nameAr: json['name_ar'] as String,
     floorPlan: GeneratedFloorPlan.fromJson(json['floor_plan'] as Map<String, dynamic>),
+    imageBase64: json['image_base64'] as String?,
   );
 }
 

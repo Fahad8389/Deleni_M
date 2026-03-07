@@ -126,6 +126,7 @@ class _AddHospitalScreenState extends ConsumerState<AddHospitalScreen> {
           nameEn: floor.name,
           nameAr: floor.name, // Claude generates Arabic in the rooms
           floorPlan: floorPlan,
+          imageBase64: floor.imageBase64,
         ));
       }
 
